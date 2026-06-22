@@ -1,0 +1,154 @@
+
+================================================
+[PHASE 1] PRE-FLIGHT: Dirty State Detection
+================================================
+[2026-06-22T06:56:30+00:00] [INFO]  Auditing existing state before convergence...
+[2026-06-22T06:56:30+00:00] [WARN]  Already exists: kk-api (UID 995) — will verify group membership
+[2026-06-22T06:56:30+00:00] [WARN]  Already exists: kk-payments (UID 997) — will verify group membership
+[2026-06-22T06:56:30+00:00] [WARN]  Already exists: kk-logs (UID 996) — will verify group membership
+[2026-06-22T06:56:30+00:00] [WARN]  Already exists: group kijanikiosk (GID 1002)
+[2026-06-22T06:56:31+00:00] [WARN]  Dirty: spurious ufw DENY 3001 rule detected — full reset in Phase 5
+[2026-06-22T06:56:31+00:00] [WARN]  Dirty: nginx package hold present — unhold before install, re-hold after
+[2026-06-22T06:56:31+00:00] [WARN]  Dirty: kk-api.service exists — will overwrite with hardened version in Phase 6
+[2026-06-22T06:56:31+00:00] [INFO]  Pre-flight complete. Beginning convergence.
+
+================================================
+[PHASE 2] SERVICE ACCOUNTS
+================================================
+[2026-06-22T06:56:31+00:00] [INFO]  Already exists: group kijanikiosk (GID 1002) — skipping creation
+[2026-06-22T06:56:31+00:00] [INFO]  Already exists: kk-api (UID 995) — skipping creation
+[2026-06-22T06:56:31+00:00] [INFO]  Already exists: kk-payments (UID 997) — skipping creation
+[2026-06-22T06:56:31+00:00] [INFO]  Already exists: kk-logs (UID 996) — skipping creation
+[2026-06-22T06:56:31+00:00] [INFO]  kk-api already in kijanikiosk group — skipping
+[2026-06-22T06:56:31+00:00] [INFO]  kk-payments already in kijanikiosk group — skipping
+[2026-06-22T06:56:31+00:00] [INFO]  kk-logs already in kijanikiosk group — skipping
+
+================================================
+[PHASE 3] DIRECTORY STRUCTURE AND ACCESS CONTROL LISTS
+================================================
+[2026-06-22T06:56:31+00:00] [INFO]  Set /opt/kijanikiosk/config: root:kijanikiosk 750 (was 777)
+[2026-06-22T06:56:31+00:00] [INFO]  Applied extended and default ACLs to /opt/kijanikiosk/shared/logs
+[2026-06-22T06:56:31+00:00] [INFO]  Set /opt/kijanikiosk/health: root:kijanikiosk 750
+[2026-06-22T06:56:31+00:00] [INFO]  Already exists: /opt/kijanikiosk/config/api.env — verifying ownership and permissions
+[2026-06-22T06:56:31+00:00] [INFO]  Already exists: /opt/kijanikiosk/config/payments-api.env — verifying ownership and permissions
+[2026-06-22T06:56:31+00:00] [INFO]  Already exists: /opt/kijanikiosk/config/logs.env — verifying ownership and permissions
+[2026-06-22T06:56:31+00:00] [INFO]  Verified: kk-payments can read payments-api.env
+
+================================================
+[PHASE 4] PACKAGE PINNING
+================================================
+Canceled hold on nginx.
+[2026-06-22T06:56:31+00:00] [INFO]  Removed nginx hold before install check
+[2026-06-22T06:56:32+00:00] [INFO]  nginx installed: 1.18.0-6ubuntu14.15 | candidate: 1.18.0-6ubuntu14.15
+[2026-06-22T06:56:32+00:00] [INFO]  nginx already at candidate version 1.18.0-6ubuntu14.15 — skipping install
+nginx set on hold.
+[2026-06-22T06:56:32+00:00] [INFO]  nginx held at: 1.18.0-6ubuntu14.15
+
+================================================
+[PHASE 5] FIREWALL: Intent-Based Ruleset
+================================================
+[2026-06-22T06:56:32+00:00] [INFO]  Resetting ufw to clean baseline (discards all manual edits and Thursday rules)...
+Backing up 'user.rules' to '/etc/ufw/user.rules.20260622_065633'
+Backing up 'before.rules' to '/etc/ufw/before.rules.20260622_065633'
+Backing up 'after.rules' to '/etc/ufw/after.rules.20260622_065633'
+Backing up 'user6.rules' to '/etc/ufw/user6.rules.20260622_065633'
+Backing up 'before6.rules' to '/etc/ufw/before6.rules.20260622_065633'
+Backing up 'after6.rules' to '/etc/ufw/after6.rules.20260622_065633'
+
+Firewall stopped and disabled on system startup
+Default incoming policy changed to 'deny'
+(be sure to update your rules accordingly)
+Default outgoing policy changed to 'allow'
+(be sure to update your rules accordingly)
+Rules updated
+Rules updated (v6)
+Rules updated
+Rules updated (v6)
+Rules updated
+Rules updated (v6)
+Rules updated
+Rules updated (v6)
+Rules updated
+Rules updated
+Rules updated (v6)
+Firewall is active and enabled on system startup
+[2026-06-22T06:56:35+00:00] [INFO]  Firewall enabled with intent-based ruleset
+[2026-06-22T06:56:35+00:00] [PASS]  PASS: SSH (22) allowed
+[2026-06-22T06:56:35+00:00] [PASS]  PASS: HTTP (80) allowed
+[2026-06-22T06:56:35+00:00] [PASS]  PASS: port 3000 loopback allow present
+[2026-06-22T06:56:35+00:00] [PASS]  PASS: port 3001 external deny present
+[2026-06-22T06:56:35+00:00] [PASS]  PASS: monitoring subnet (10.0.1.0/24) rule present
+
+================================================
+[PHASE 6] SYSTEMD UNIT FILES (all three inline)
+================================================
+[2026-06-22T06:56:35+00:00] [INFO]  Written: /etc/systemd/system/kk-api.service
+[2026-06-22T06:56:35+00:00] [INFO]  Written: /etc/systemd/system/kk-payments.service
+[2026-06-22T06:56:35+00:00] [INFO]  Written: /etc/systemd/system/kk-logs.service
+[2026-06-22T06:56:36+00:00] [INFO]  Enabled: kk-api.service
+[2026-06-22T06:56:36+00:00] [INFO]  Started: kk-api.service
+[2026-06-22T06:56:37+00:00] [INFO]  Enabled: kk-payments.service
+[2026-06-22T06:56:37+00:00] [INFO]  Started: kk-payments.service
+[2026-06-22T06:56:37+00:00] [INFO]  Enabled: kk-logs.service
+[2026-06-22T06:56:37+00:00] [INFO]  Started: kk-logs.service
+[2026-06-22T06:56:37+00:00] [INFO]  Hardening scores:
+[2026-06-22T06:56:37+00:00] [INFO]    kk-api.service: 1.8
+[2026-06-22T06:56:37+00:00] [INFO]    kk-logs.service: 1.8
+[2026-06-22T06:56:37+00:00] [INFO]    kk-payments.service: 1.2
+
+================================================
+[PHASE 7] JOURNAL PERSISTENCE AND LOG ROTATION
+================================================
+[2026-06-22T06:56:37+00:00] [INFO]  Journal: persistent storage, 500MB cap, 90-day retention
+[2026-06-22T06:56:37+00:00] [INFO]  Written: /etc/logrotate.d/kijanikiosk (with su directive)
+[2026-06-22T06:56:37+00:00] [INFO]  logrotate --debug passed cleanly
+
+================================================
+[PHASE 8] MONITORING HEALTH CHECKS
+================================================
+[2026-06-22T06:56:37+00:00] [INFO]  Health check JSON written
+[2026-06-22T06:56:37+00:00] [INFO]    kk-api:      "down" (expected: down — no app code deployed)
+[2026-06-22T06:56:37+00:00] [INFO]    kk-payments: "down" (expected: down — no app code deployed)
+
+================================================
+[PHASE 9] FINAL VERIFICATION — All Phases
+================================================
+[2026-06-22T06:56:37+00:00] [PASS]  PASS: kk-api user exists
+[2026-06-22T06:56:37+00:00] [PASS]  PASS: kk-payments user exists
+[2026-06-22T06:56:37+00:00] [PASS]  PASS: kk-logs user exists
+[2026-06-22T06:56:37+00:00] [PASS]  PASS: kijanikiosk group exists
+[2026-06-22T06:56:37+00:00] [PASS]  PASS: kk-api in kijanikiosk group
+[2026-06-22T06:56:37+00:00] [PASS]  PASS: kk-payments in kijanikiosk group
+[2026-06-22T06:56:37+00:00] [PASS]  PASS: kk-logs in kijanikiosk group
+[2026-06-22T06:56:37+00:00] [PASS]  PASS: /opt/kijanikiosk/config is 750
+[2026-06-22T06:56:37+00:00] [PASS]  PASS: shared/logs ACL kk-api:rwx
+[2026-06-22T06:56:37+00:00] [PASS]  PASS: shared/logs ACL kk-payments:r-x
+[2026-06-22T06:56:37+00:00] [PASS]  PASS: shared/logs default ACL kk-api (survives logrotate)
+[2026-06-22T06:56:37+00:00] [PASS]  PASS: env file exists: api.env
+[2026-06-22T06:56:37+00:00] [PASS]  PASS: env file exists: payments-api.env
+[2026-06-22T06:56:37+00:00] [PASS]  PASS: env file exists: logs.env
+[2026-06-22T06:56:37+00:00] [PASS]  PASS: kk-payments can read payments-api.env
+[2026-06-22T06:56:38+00:00] [PASS]  PASS: nginx package held
+[2026-06-22T06:56:38+00:00] [PASS]  PASS: ufw: SSH (22) allowed
+[2026-06-22T06:56:38+00:00] [PASS]  PASS: ufw: HTTP (80) allowed
+[2026-06-22T06:56:38+00:00] [PASS]  PASS: ufw: port 3001 external deny
+[2026-06-22T06:56:38+00:00] [PASS]  PASS: ufw: monitoring subnet 10.0.1.0/24 allow
+[2026-06-22T06:56:38+00:00] [PASS]  PASS: kk-api.service enabled
+[2026-06-22T06:56:38+00:00] [PASS]  PASS: kk-api.service active
+[2026-06-22T06:56:38+00:00] [PASS]  PASS: kk-payments.service enabled
+[2026-06-22T06:56:38+00:00] [PASS]  PASS: kk-payments.service active
+[2026-06-22T06:56:38+00:00] [PASS]  PASS: kk-logs.service enabled
+[2026-06-22T06:56:38+00:00] [PASS]  PASS: kk-logs.service active
+[2026-06-22T06:56:38+00:00] [PASS]  PASS: kk-api.service hardening score < 3.5 (1.8)
+[2026-06-22T06:56:38+00:00] [PASS]  PASS: kk-logs.service hardening score < 3.5 (1.8)
+[2026-06-22T06:56:38+00:00] [PASS]  PASS: kk-payments hardening score < 2.5 (1.2)
+[2026-06-22T06:56:38+00:00] [PASS]  PASS: journal persistence config exists
+[2026-06-22T06:56:38+00:00] [PASS]  PASS: journal is active and readable
+[2026-06-22T06:56:38+00:00] [PASS]  PASS: logrotate config passes --debug
+[2026-06-22T06:56:38+00:00] [PASS]  PASS: health check JSON exists
+[2026-06-22T06:56:38+00:00] [PASS]  PASS: health JSON permissions 640
+[2026-06-22T06:56:38+00:00] [PASS]  PASS: health JSON owned by kk-logs
+
+================================================
+[2026-06-22T06:56:38+00:00] [PASS]  All checks passed. Server converged to desired state.
+================================================

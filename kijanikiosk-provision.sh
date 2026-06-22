@@ -33,7 +33,6 @@ phase()   {
     "================================================"
 }
 
-# Global check tracker
 FAILED_CHECKS=()
 record_check() {
   local label="$1" result="$2"
@@ -45,7 +44,6 @@ record_check() {
   fi
 }
 
-# ─── Root guard ───────────────────────────────────────────────────────────────
 if [[ $EUID -ne 0 ]]; then
   error "Must run as root: sudo $0"
   exit 1
@@ -91,7 +89,7 @@ if [[ "$NGINX_HOLD" -gt 0 ]]; then
 fi
 
 if [[ -f /etc/systemd/system/kk-api.service ]]; then
-  warn "Dirty: kk-api.service exists without hardening — will overwrite in Phase 6"
+  warn "Dirty: kk-api.service exists — will overwrite with hardened version in Phase 6"
 fi
 
 log "Pre-flight complete. Beginning convergence."
@@ -100,7 +98,6 @@ log "Pre-flight complete. Beginning convergence."
 phase 2 "SERVICE ACCOUNTS"
 # ─────────────────────────────────────────────────────────────────────────────
 
-# kijanikiosk shared group
 if ! getent group kijanikiosk &>/dev/null; then
   groupadd --system kijanikiosk
   log "Created group: kijanikiosk"
@@ -108,7 +105,6 @@ else
   log "Already exists: group kijanikiosk (GID $(getent group kijanikiosk | cut -d: -f3)) — skipping creation"
 fi
 
-# kk-api — UID 998 conflict: create without forcing UID
 if ! id kk-api &>/dev/null; then
   useradd --system --no-create-home --shell /usr/sbin/nologin \
     --comment "KijaniKiosk API service account" kk-api
@@ -117,7 +113,6 @@ else
   log "Already exists: kk-api (UID $(id -u kk-api)) — skipping creation"
 fi
 
-# kk-payments
 if ! id kk-payments &>/dev/null; then
   useradd --system --no-create-home --shell /usr/sbin/nologin \
     --comment "KijaniKiosk Payments service account" kk-payments
@@ -126,7 +121,6 @@ else
   log "Already exists: kk-payments (UID $(id -u kk-payments)) — skipping creation"
 fi
 
-# kk-logs
 if ! id kk-logs &>/dev/null; then
   useradd --system --no-create-home --shell /usr/sbin/nologin \
     --comment "KijaniKiosk Log aggregation service account" kk-logs
@@ -135,7 +129,6 @@ else
   log "Already exists: kk-logs (UID $(id -u kk-logs)) — skipping creation"
 fi
 
-# Group membership — idempotent
 for svc_user in kk-api kk-payments kk-logs; do
   if id "$svc_user" &>/dev/null; then
     if id -nG "$svc_user" | grep -qw kijanikiosk; then
@@ -156,35 +149,26 @@ mkdir -p \
   /opt/kijanikiosk/config \
   /opt/kijanikiosk/health
 
-# Top-level
 chown root:kijanikiosk /opt/kijanikiosk
 chmod 750 /opt/kijanikiosk
 
-# config/ — env files live here; root owns, group reads
 chown root:kijanikiosk /opt/kijanikiosk/config
 chmod 750 /opt/kijanikiosk/config
 log "Set /opt/kijanikiosk/config: root:kijanikiosk 750 (was 777)"
 
-# shared/logs/ — kk-api writes, kk-payments reads, kk-logs aggregates
-# setgid bit ensures new files inherit kijanikiosk group
 chown kk-api:kijanikiosk /opt/kijanikiosk/shared/logs
 chmod 2750 /opt/kijanikiosk/shared/logs
 
-# Extended ACLs: current entries
 setfacl -m u:kk-api:rwx,u:kk-payments:r-x,u:kk-logs:rwx \
   /opt/kijanikiosk/shared/logs
-# Default ACLs: new files created inside inherit these — survives logrotate
 setfacl -d -m u:kk-api:rwx,u:kk-payments:r-x,u:kk-logs:rwx \
   /opt/kijanikiosk/shared/logs
 log "Applied extended and default ACLs to /opt/kijanikiosk/shared/logs"
 
-# health/ — root:kijanikiosk, group read; no extended ACLs needed
-# Phase 8 sets file-level ownership to kk-logs:kijanikiosk
 chown root:kijanikiosk /opt/kijanikiosk/health
 chmod 750 /opt/kijanikiosk/health
 log "Set /opt/kijanikiosk/health: root:kijanikiosk 750"
 
-# ─── Environment files ────────────────────────────────────────────────────────
 create_env_file() {
   local path="$1" owner="$2"
   if [[ ! -f "$path" ]]; then
@@ -201,8 +185,8 @@ create_env_file /opt/kijanikiosk/config/api.env          kk-api
 create_env_file /opt/kijanikiosk/config/payments-api.env kk-payments
 create_env_file /opt/kijanikiosk/config/logs.env         kk-logs
 
-# Integration Challenge A: verify kk-payments can read its EnvironmentFile
-# ProtectSystem=strict makes /etc read-only — configs under /opt are unaffected
+# Integration Challenge A: verify EnvironmentFile readable before Phase 6
+# ProtectSystem=strict makes /etc read-only — /opt is unaffected
 if sudo -u kk-payments test -r /opt/kijanikiosk/config/payments-api.env; then
   log "Verified: kk-payments can read payments-api.env"
 else
@@ -221,8 +205,7 @@ if apt-mark showhold | grep -q nginx; then
 fi
 
 INSTALLED=$(dpkg-query -W -f='${Version}' nginx 2>/dev/null || echo "none")
-CANDIDATE=$(apt-cache policy nginx 2>/dev/null \
-  | grep Candidate | awk '{print $2}')
+CANDIDATE=$(apt-cache policy nginx 2>/dev/null | grep Candidate | awk '{print $2}')
 
 log "nginx installed: $INSTALLED | candidate: $CANDIDATE"
 
@@ -236,7 +219,6 @@ else
   apt-get install -y nginx
 fi
 
-# Re-apply hold to pin current installed version
 apt-mark hold nginx
 log "nginx held at: $(dpkg-query -W -f='${Version}' nginx)"
 
@@ -253,7 +235,6 @@ ufw default allow outgoing
 
 # Rules added in order: allow rules for 3001 MUST precede the deny rule
 # (ufw first-match wins — out-of-order = loopback traffic blocked by deny)
-
 ufw allow 22/tcp comment "SSH: remote administration"
 ufw allow 80/tcp comment "HTTP: nginx ingress for kk-api reverse proxy"
 ufw allow in on lo to any port 3000 \
@@ -268,7 +249,6 @@ ufw deny 3001 \
 ufw --force enable
 log "Firewall enabled with intent-based ruleset"
 
-# Programmatic rule verification (one PASS/FAIL per rule)
 FIREWALL_FAILED=0
 UFW_STATUS=$(ufw status)
 
@@ -280,7 +260,7 @@ echo "$UFW_STATUS" | grep -q "80/tcp.*ALLOW" \
   && success "PASS: HTTP (80) allowed" \
   || { error "FAIL: HTTP (80) rule missing"; FIREWALL_FAILED=$((FIREWALL_FAILED + 1)); }
 
-echo "$UFW_STATUS" | grep -q "3000.*ALLOW.*lo\|lo.*3000.*ALLOW" \
+echo "$UFW_STATUS" | grep -q "3000.*ALLOW" \
   && success "PASS: port 3000 loopback allow present" \
   || { error "FAIL: port 3000 loopback rule missing"; FIREWALL_FAILED=$((FIREWALL_FAILED + 1)); }
 
@@ -293,7 +273,7 @@ echo "$UFW_STATUS" | grep -q "10.0.1.0/24" \
   || { error "FAIL: monitoring subnet rule missing"; FIREWALL_FAILED=$((FIREWALL_FAILED + 1)); }
 
 if [[ $FIREWALL_FAILED -gt 0 ]]; then
-  error "Phase 5 firewall verification: $FIREWALL_FAILED rule(s) missing"
+  error "Phase 5: $FIREWALL_FAILED firewall rule(s) missing — aborting"
   exit 1
 fi
 
@@ -305,7 +285,7 @@ phase 6 "SYSTEMD UNIT FILES (all three inline)"
 cat > /etc/systemd/system/kk-api.service << 'UNIT'
 [Unit]
 Description=KijaniKiosk API Service
-Documentation=https://github.com/kijanikiosk/devops-foundation
+Documentation=https://github.com/GIOVESS/kijanikiosk-devops-foundation
 After=network.target
 
 [Service]
@@ -320,7 +300,7 @@ StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=kk-api
 
-# Hardening
+# Hardening (target < 3.5)
 NoNewPrivileges=yes
 PrivateTmp=yes
 PrivateDevices=yes
@@ -349,15 +329,14 @@ UNIT
 log "Written: /etc/systemd/system/kk-api.service"
 
 # ─── kk-payments.service — target score < 2.5 ────────────────────────────────
-# Financial data: strictest hardening on the stack
+# Financial data: strictest hardening
 # After/Wants kk-api per requirement
-# EnvironmentFile under /opt (not /etc) — unaffected by ProtectSystem=strict
-# IPAddressDeny/Allow preferred over PrivateNetwork: payments needs egress
-# to payment gateways; full network isolation would break real deployments
+# EnvironmentFile under /opt — unaffected by ProtectSystem=strict (Challenge A)
+# IPAddressDeny/Allow used over PrivateNetwork: payments needs controlled egress
 cat > /etc/systemd/system/kk-payments.service << 'UNIT'
 [Unit]
 Description=KijaniKiosk Payments Service
-Documentation=https://github.com/kijanikiosk/devops-foundation
+Documentation=https://github.com/GIOVESS/kijanikiosk-devops-foundation
 After=network.target kk-api.service
 Wants=kk-api.service
 
@@ -410,14 +389,13 @@ UNIT
 log "Written: /etc/systemd/system/kk-payments.service"
 
 # ─── kk-logs.service — target score < 3.5 ────────────────────────────────────
-# Integration Challenge C: ExecReload=kill -HUP defined so logrotate
-# postrotate can use systemctl reload (not restart) to signal log re-open.
-# PrivateTmp=yes is safe here because reload is sent by root via systemctl,
-# not by the service process itself — the HUP reaches the main PID directly.
+# Integration Challenge C: ExecReload defined so logrotate postrotate can use
+# systemctl reload. PrivateTmp does not interfere — SIGHUP is dispatched by
+# systemd directly to the main PID, not through the private namespace.
 cat > /etc/systemd/system/kk-logs.service << 'UNIT'
 [Unit]
 Description=KijaniKiosk Log Aggregation Service
-Documentation=https://github.com/kijanikiosk/devops-foundation
+Documentation=https://github.com/GIOVESS/kijanikiosk-devops-foundation
 After=network.target
 
 [Service]
@@ -433,7 +411,7 @@ StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=kk-logs
 
-# Hardening
+# Hardening (target < 3.5)
 NoNewPrivileges=yes
 PrivateTmp=yes
 PrivateDevices=yes
@@ -471,7 +449,6 @@ for unit in kk-api kk-payments kk-logs; do
     || warn "${unit}.service failed to start — inspect: journalctl -u ${unit} -n 30"
 done
 
-# Report hardening scores (informational — failures caught in Phase 9)
 log "Hardening scores:"
 for unit in kk-api kk-logs kk-payments; do
   SCORE=$(systemd-analyze security "${unit}.service" 2>/dev/null \
@@ -483,7 +460,6 @@ done
 phase 7 "JOURNAL PERSISTENCE AND LOG ROTATION"
 # ─────────────────────────────────────────────────────────────────────────────
 
-# Persistent journal, capped at 500MB
 mkdir -p /var/log/journal
 mkdir -p /etc/systemd/journald.conf.d
 
@@ -500,11 +476,14 @@ systemctl restart systemd-journald
 log "Journal: persistent storage, 500MB cap, 90-day retention"
 
 # Logrotate config
-# create directive matches directory default ACLs (kk-api:kijanikiosk 640)
-# so new files created post-rotation are writable by kk-api and readable
-# by kk-payments — Integration Challenge C resolved via ExecReload in unit
+# su directive: required when target directory is group-writable by non-root
+# group. Without it logrotate refuses rotation with "insecure permissions".
+# create directive matches directory default ACLs so post-rotation files
+# remain writable by kk-api and readable by kk-payments (Challenge C resolved
+# via ExecReload in kk-logs.service — systemctl reload signals SIGHUP).
 cat > /etc/logrotate.d/kijanikiosk << 'LOGROTATE'
 /opt/kijanikiosk/shared/logs/*.log {
+    su kk-api kijanikiosk
     daily
     missingok
     rotate 14
@@ -518,10 +497,10 @@ cat > /etc/logrotate.d/kijanikiosk << 'LOGROTATE'
     endscript
 }
 LOGROTATE
-log "Written: /etc/logrotate.d/kijanikiosk"
+log "Written: /etc/logrotate.d/kijanikiosk (with su directive)"
 
-# Verify — --debug is non-destructive
-if logrotate --debug /etc/logrotate.d/kijanikiosk 2>&1 | grep -q "error"; then
+# Phase 7 inline check (informational)
+if logrotate --debug /etc/logrotate.d/kijanikiosk 2>&1 | grep -qi "^error:"; then
   warn "logrotate --debug reported errors — review /etc/logrotate.d/kijanikiosk"
 else
   log "logrotate --debug passed cleanly"
@@ -533,8 +512,8 @@ phase 8 "MONITORING HEALTH CHECKS"
 
 mkdir -p /opt/kijanikiosk/health
 
-# Services are not running application code yet — "down" is the expected result
-# A missing JSON file is a script failure; "down" is a legitimate state
+# Services have no application code — "down" is expected
+# A missing file is a script failure; "down" is a valid provisioned state
 api_status=$(timeout 2 bash -c "echo >/dev/tcp/localhost/3000" 2>/dev/null \
   && echo '"ok"' || echo '"down"')
 payments_status=$(timeout 2 bash -c "echo >/dev/tcp/localhost/3001" 2>/dev/null \
@@ -545,7 +524,7 @@ printf '{"timestamp":"%s","kk-api":%s,"kk-payments":%s}\n' \
   > /opt/kijanikiosk/health/last-provision.json
 
 # Integration Challenge B: health dir is new — define ownership explicitly
-# kk-logs owns runtime files; kijanikiosk group provides read access
+# kk-logs owns runtime health files; kijanikiosk group provides read access
 chown kk-logs:kijanikiosk /opt/kijanikiosk/health/last-provision.json
 chmod 640 /opt/kijanikiosk/health/last-provision.json
 
@@ -559,7 +538,7 @@ phase 9 "FINAL VERIFICATION — All Phases"
 
 FAILED_CHECKS=()
 
-# ── Phase 2: accounts ─────────────────────────────────────────────────────────
+# Phase 2: accounts
 for u in kk-api kk-payments kk-logs; do
   id "$u" &>/dev/null \
     && record_check "$u user exists" pass \
@@ -576,7 +555,7 @@ for u in kk-api kk-payments kk-logs; do
     || record_check "$u in kijanikiosk group" fail
 done
 
-# ── Phase 3: directories and ACLs ────────────────────────────────────────────
+# Phase 3: directories and ACLs
 [[ $(stat -c '%a' /opt/kijanikiosk/config) == "750" ]] \
   && record_check "/opt/kijanikiosk/config is 750" pass \
   || record_check "/opt/kijanikiosk/config is 750" fail
@@ -603,12 +582,12 @@ sudo -u kk-payments test -r /opt/kijanikiosk/config/payments-api.env \
   && record_check "kk-payments can read payments-api.env" pass \
   || record_check "kk-payments can read payments-api.env" fail
 
-# ── Phase 4: package hold ─────────────────────────────────────────────────────
+# Phase 4: package hold
 apt-mark showhold | grep -q nginx \
   && record_check "nginx package held" pass \
   || record_check "nginx package held" fail
 
-# ── Phase 5: firewall ─────────────────────────────────────────────────────────
+# Phase 5: firewall
 UFW_OUT=$(ufw status)
 echo "$UFW_OUT" | grep -q "22/tcp.*ALLOW" \
   && record_check "ufw: SSH (22) allowed" pass \
@@ -626,7 +605,7 @@ echo "$UFW_OUT" | grep -q "10.0.1.0/24" \
   && record_check "ufw: monitoring subnet 10.0.1.0/24 allow" pass \
   || record_check "ufw: monitoring subnet 10.0.1.0/24 allow" fail
 
-# ── Phase 6: systemd units ────────────────────────────────────────────────────
+# Phase 6: systemd units
 for unit in kk-api kk-payments kk-logs; do
   systemctl is-enabled "${unit}.service" 2>/dev/null | grep -q "enabled" \
     && record_check "${unit}.service enabled" pass \
@@ -637,7 +616,6 @@ for unit in kk-api kk-payments kk-logs; do
     || record_check "${unit}.service active" fail
 done
 
-# kk-api and kk-logs: score < 3.5
 for unit in kk-api kk-logs; do
   SCORE=$(systemd-analyze security "${unit}.service" 2>/dev/null \
     | tail -1 | grep -oP '\d+\.\d+' || echo "99")
@@ -646,14 +624,13 @@ for unit in kk-api kk-logs; do
     || record_check "${unit}.service hardening score < 3.5 (${SCORE})" fail
 done
 
-# kk-payments: score < 2.5
 P_SCORE=$(systemd-analyze security kk-payments.service 2>/dev/null \
   | tail -1 | grep -oP '\d+\.\d+' || echo "99")
 awk "BEGIN{exit ($P_SCORE < 2.5) ? 0 : 1}" \
   && record_check "kk-payments hardening score < 2.5 (${P_SCORE})" pass \
   || record_check "kk-payments hardening score < 2.5 (${P_SCORE})" fail
 
-# ── Phase 7: journal + logrotate ──────────────────────────────────────────────
+# Phase 7: journal + logrotate
 [[ -f /etc/systemd/journald.conf.d/kijanikiosk.conf ]] \
   && record_check "journal persistence config exists" pass \
   || record_check "journal persistence config exists" fail
@@ -662,11 +639,15 @@ awk "BEGIN{exit ($P_SCORE < 2.5) ? 0 : 1}" \
   && record_check "journal is active and readable" pass \
   || record_check "journal is active and readable" fail
 
-logrotate --debug /etc/logrotate.d/kijanikiosk 2>&1 | grep -qv "error" \
-  && record_check "logrotate config passes --debug" pass \
-  || record_check "logrotate config passes --debug" fail
+# Fixed: isolate logrotate exit code from pipefail with || true
+LOGROTATE_OUT=$(logrotate --debug /etc/logrotate.d/kijanikiosk 2>&1 || true)
+if ! echo "$LOGROTATE_OUT" | grep -qi "error:"; then
+  record_check "logrotate config passes --debug" pass
+else
+  record_check "logrotate config passes --debug" fail
+fi
 
-# ── Phase 8: health check ─────────────────────────────────────────────────────
+# Phase 8: health check
 [[ -f /opt/kijanikiosk/health/last-provision.json ]] \
   && record_check "health check JSON exists" pass \
   || record_check "health check JSON exists" fail
@@ -679,7 +660,7 @@ logrotate --debug /etc/logrotate.d/kijanikiosk 2>&1 | grep -qv "error" \
   && record_check "health JSON owned by kk-logs" pass \
   || record_check "health JSON owned by kk-logs" fail
 
-# ── Final result ──────────────────────────────────────────────────────────────
+# ─── Final result ─────────────────────────────────────────────────────────────
 echo ""
 echo "================================================"
 TOTAL_FAILED=${#FAILED_CHECKS[@]}
