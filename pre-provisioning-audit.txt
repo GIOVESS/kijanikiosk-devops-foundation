@@ -1,0 +1,67 @@
+=== KijaniKiosk Pre-Provisioning Audit ===
+Timestamp: 2026-06-22T05:46:55+00:00
+
+--- [1] Service Accounts ---
+kk-payments:x:997:997::/home/kk-payments:/usr/sbin/nologin
+kk-logs:x:996:996::/home/kk-logs:/usr/sbin/nologin
+
+--- [2] Group ---
+kijanikiosk:x:1002:
+
+--- [3] Directory Listing ---
+total 20
+drwxr-xr-x 5 root root 4096 Jun 22 05:35 .
+drwxr-xr-x 3 root root 4096 Jun 22 05:35 ..
+drwxrwxrwx 2 root root 4096 Jun 22 05:35 config
+drwxr-xr-x 2 root root 4096 Jun 22 05:35 health
+drwxr-xr-x 3 root root 4096 Jun 22 05:35 shared
+
+--- [4] ACLs: shared/logs ---
+# file: opt/kijanikiosk/shared/logs/
+# owner: root
+# group: root
+user::rwx
+group::r-x
+other::r-x
+
+
+--- [5] ACLs: config ---
+# file: opt/kijanikiosk/config/
+# owner: root
+# group: root
+user::rwx
+group::rwx
+other::rwx
+
+
+--- [6] UFW Status ---
+Status: active
+
+     To                         Action      From
+     --                         ------      ----
+[ 1] 22/tcp                     ALLOW IN    Anywhere                  
+[ 2] 80/tcp                     ALLOW IN    Anywhere                  
+[ 3] 3001                       DENY IN     Anywhere                  
+[ 4] 22/tcp (v6)                ALLOW IN    Anywhere (v6)             
+[ 5] 80/tcp (v6)                ALLOW IN    Anywhere (v6)             
+[ 6] 3001 (v6)                  DENY IN     Anywhere (v6)             
+
+
+--- [7] Package Holds ---
+nginx
+
+--- [8] systemd kk- units ---
+kk-api.service                         enabled         enabled
+
+--- [9] kk-api security score ---
+  NAME                                                        DESCRIPTION                                                             EXPOSURE
+✗ PrivateNetwork=                                             Service has access to the host's network                                     0.5
+✓ User=/DynamicUser=                                          Service runs under a static non-root user identity                      
+✗ CapabilityBoundingSet=~CAP_SET(UID|GID|PCAP)                Service may change UID/GID identities/capabilities                           0.3
+✗ CapabilityBoundingSet=~CAP_SYS_ADMIN                        Service has administrator privileges                                         0.3
+
+--- [10] Log dir size ---
+4.0K	/opt/kijanikiosk/shared/logs/
+
+--- [11] Journal usage ---
+Archived and active journals take up 8.0M in the file system.
