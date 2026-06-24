@@ -1,0 +1,61 @@
+# /etc/sudoers.d/amina
+# KijaniKiosk — Amina's restricted operational sudo policy
+# Last updated: 2026-06-24
+#
+# Grants only what Amina's role requires:
+#   - Restart the three KijaniKiosk services
+#   - Check service status
+#   - Read journal logs for the three services
+#   - Edit the nginx configuration safely
+#
+# Explicitly blocks (by omission):
+#   - sudo bash, sudo sh, sudo su — no shell escalation
+#   - sudo vim, sudo nano, sudo python3 — no interpreter access
+#   - sudo systemctl (unrestricted) — blocks daemon-reload, mask, disable, etc.
+#   - sudo journalctl (unrestricted) — blocks reading other services' logs
+
+# Service management — subcommand + service name both pinned
+# Rationale: "amina ALL=(root) /usr/bin/systemctl" without restriction grants
+# access to systemctl daemon-reload (reloads all units), systemctl mask ssh
+# (disables SSH permanently), systemctl reboot, and systemctl edit (opens an
+# editor = shell escape). Pinning to "restart <service>" and "status <service>"
+# closes all of these vectors.
+amina ALL=(root) NOPASSWD: /usr/bin/systemctl restart kk-api.service
+amina ALL=(root) NOPASSWD: /usr/bin/systemctl restart kk-payments.service
+amina ALL=(root) NOPASSWD: /usr/bin/systemctl restart kk-logs.service
+amina ALL=(root) NOPASSWD: /usr/bin/systemctl status kk-api.service
+amina ALL=(root) NOPASSWD: /usr/bin/systemctl status kk-payments.service
+amina ALL=(root) NOPASSWD: /usr/bin/systemctl status kk-logs.service
+
+# Journal log access — service name pinned
+# Rationale: "sudo journalctl" without -u restriction allows reading all system
+# logs including auth.log entries, SSH session records, and sudo command history.
+# Pinning to named services limits Amina to logs she has operational need for.
+amina ALL=(root) NOPASSWD: /usr/bin/journalctl -u kk-api.service
+amina ALL=(root) NOPASSWD: /usr/bin/journalctl -u kk-payments.service
+amina ALL=(root) NOPASSWD: /usr/bin/journalctl -u kk-logs.service
+
+# Nginx config editing — sudoedit only
+# Rationale: "sudo vim /etc/nginx/nginx.conf" opens vim as root. vim's :shell
+# and :! commands provide a full root shell. sudoedit copies the file to a temp
+# location, opens the user's own editor as the user (not root), then copies
+# the result back. No shell escape is possible because the editor never runs
+# as root.
+amina ALL=(root) NOPASSWD: sudoedit /etc/nginx/nginx.conf
+
+# --- Two attack scenarios if systemctl were unrestricted ---
+#
+# Scenario 1: SSH lockout via systemctl mask
+#   sudo systemctl mask ssh
+#   sudo systemctl stop ssh
+# This permanently disables SSH, creating a denial of service that survives
+# reboot. Recovery requires console access. On a cloud VM without console
+# access, this is an unrecoverable lockout.
+#
+# Scenario 2: Privilege escalation via systemctl edit
+#   sudo systemctl edit kk-api.service
+# systemctl edit opens a text editor (as root) to create an override unit file.
+# The editor is determined by $EDITOR — if set to bash or sh, this is a direct
+# root shell. Even with a safe editor, the override file can add:
+#   ExecStartPost=/bin/bash -c "cp /bin/bash /tmp/rootbash; chmod +s /tmp/rootbash"
+# The next service restart executes that command as root.
