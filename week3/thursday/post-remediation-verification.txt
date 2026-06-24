@@ -1,0 +1,60 @@
+=== REMEDIATION COMPLETION ===
+Date: 2026-06-24T19:52:53+00:00
+
+--- Complete Fix 1: Kill rogue process with sudo ---
+Rogue PID: 2723
+    PID    PPID USER                      STARTED CMD
+   2723       1 root     Wed Jun 24 19:41:31 2026 node /tmp/rogue-server.js
+Sending SIGTERM...
+    PID TTY          TIME CMD
+Process terminated cleanly via SIGTERM
+Port 3001 after kill:
+PASS: port 3001 has no listeners
+
+--- Complete Fix 3: Compress and reclaim disk ---
+Disk before:
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda1        39G  3.7G   36G  10% /
+1.6G	/opt/kijanikiosk/shared/logs/
+Second logrotate pass (compresses .1 files)...
+Removing rotated files (test data — not real logs)...
+Disk after:
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda1        39G  2.2G   37G   6% /
+8.0K	/opt/kijanikiosk/shared/logs/
+
+=== FINAL VERIFICATION ===
+
+--- I/O wait ---
+procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
+ r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st
+ 2  0      0 1229816  16952 567104    0    0   129   389   49   42  0  0 99  0  0
+ 0  0      0 1229828  16952 566944    0    0     0     0  112   63  0  0 100  0  0
+ 0  0      0 1229828  16952 566944    0    0     0     0   70   43  0  0 100  0  0
+
+--- Port 3001 ---
+PASS: no listeners on 3001
+
+--- UFW rules ---
+Status: active
+
+     To                         Action      From
+     --                         ------      ----
+[ 1] 22/tcp                     ALLOW IN    Anywhere                   # SSH: remote administration
+[ 2] 80/tcp                     ALLOW IN    Anywhere                   # HTTP: nginx ingress
+[ 3] 22/tcp (v6)                ALLOW IN    Anywhere (v6)              # SSH: remote administration
+[ 4] 80/tcp (v6)                ALLOW IN    Anywhere (v6)              # HTTP: nginx ingress
+
+
+--- Log directory ---
+total 12K
+drwxrws---+ 2 kk-logs kijanikiosk 4.0K Jun 24 19:52 .
+drwxrwxrwx  3 root    root        4.0K Jun 22 05:35 ..
+-rw-r-----+ 1 kk-api  kijanikiosk    0 Jun 24 19:49 payments-2024-03-10.log
+-rw-r-----+ 1 kk-api  kijanikiosk    0 Jun 24 19:49 payments-2024-03-14.log
+-rw-r-----+ 1 kk-api  kijanikiosk    0 Jun 24 19:49 payments-2024-03-17.log
+-rwxrwxrwx+ 1 kk-api  kijanikiosk    0 Jun 22 06:56 test-write.tmp
+
+--- curl 3001 ---
+PASS: no response on 3001
+

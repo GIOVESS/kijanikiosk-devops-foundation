@@ -1,0 +1,36 @@
+=== PHASE 5: VERIFICATION ===
+Date: 2026-06-24T19:50:05+00:00
+
+--- vmstat: I/O wait should be low ---
+procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
+ r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st
+ 2  0      0 197504  16728 1596776    0    0   137   416   49   43  0  1 99  0  0
+ 0  0      0 197504  16728 1596780    0    0     0     0   79   46  0  0 100  0  0
+ 0  0      0 197504  16728 1596780    0    0     0     0   70   37  0  0 100  0  0
+
+--- disk recovered ---
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda1        39G  3.7G   36G  10% /
+1.6G	/opt/kijanikiosk/shared/logs/
+
+--- port 3001: single listener check ---
+LISTEN 0      511        127.0.0.1:3001      0.0.0.0:*          
+Listener found
+
+--- ufw: deny rule gone ---
+Status: active
+
+     To                         Action      From
+     --                         ------      ----
+[ 1] 22/tcp                     ALLOW IN    Anywhere                   # SSH: remote administration
+[ 2] 80/tcp                     ALLOW IN    Anywhere                   # HTTP: nginx ingress
+[ 3] 22/tcp (v6)                ALLOW IN    Anywhere (v6)              # SSH: remote administration
+[ 4] 80/tcp (v6)                ALLOW IN    Anywhere (v6)              # HTTP: nginx ingress
+
+
+--- kk-payments service health ---
+{"error":"Internal Server Error","service":"unknown"}Response received
+
+--- journal: no new errors ---
+-- No entries --
+

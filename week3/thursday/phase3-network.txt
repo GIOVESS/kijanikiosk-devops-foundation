@@ -1,0 +1,49 @@
+=== PHASE 3: NETWORK ===
+Date: 2026-06-24T19:46:19+00:00
+
+--- listening ports ---
+State  Recv-Q Send-Q Local Address:Port Peer Address:PortProcess
+LISTEN 0      128          0.0.0.0:22        0.0.0.0:*          
+LISTEN 0      511          0.0.0.0:80        0.0.0.0:*          
+LISTEN 0      511        127.0.0.1:3001      0.0.0.0:*          
+LISTEN 0      4096   127.0.0.53%lo:53        0.0.0.0:*          
+LISTEN 0      128             [::]:22           [::]:*          
+LISTEN 0      511             [::]:80           [::]:*          
+
+--- port 3001 response ---
+*   Trying 127.0.0.1:3001...
+* Connected to localhost (127.0.0.1) port 3001 (#0)
+> GET / HTTP/1.1
+> Host: localhost:3001
+> User-Agent: curl/7.81.0
+> Accept: */*
+> 
+* Mark bundle as not supporting multiuse
+< HTTP/1.1 500 Internal Server Error
+< Content-Type: application/json
+< Date: Wed, 24 Jun 2026 19:46:19 GMT
+< Connection: keep-alive
+< Keep-Alive: timeout=5
+< Transfer-Encoding: chunked
+< 
+{ [64 bytes data]
+* Connection #0 to host localhost left intact
+{"error":"Internal Server Error","service":"unknown"}
+--- ufw status ---
+Status: active
+
+     To                         Action      From
+     --                         ------      ----
+[ 1] 22/tcp                     ALLOW IN    Anywhere                   # SSH: remote administration
+[ 2] 80/tcp                     ALLOW IN    Anywhere                   # HTTP: nginx ingress
+[ 3] 3001/tcp                   DENY IN     Anywhere                   # MISCONFIGURED: blocks health checks
+[ 4] 22/tcp (v6)                ALLOW IN    Anywhere (v6)              # SSH: remote administration
+[ 5] 80/tcp (v6)                ALLOW IN    Anywhere (v6)              # HTTP: nginx ingress
+[ 6] 3001/tcp (v6)              DENY IN     Anywhere (v6)              # MISCONFIGURED: blocks health checks
+
+
+--- external interface ---
+    inet 10.0.2.15/24 metric 100 brd 10.0.2.255 scope global dynamic enp0s3
+    inet6 fd17:625c:f037:2:24:d8ff:fe7c:d655/64 scope global dynamic mngtmpaddr noprefixroute 
+    inet6 fe80::24:d8ff:fe7c:d655/64 scope link 
+
