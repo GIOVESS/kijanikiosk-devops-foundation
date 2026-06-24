@@ -1,0 +1,31 @@
+=== Reboot Verification ===
+Date: 2026-06-24T19:10:27+00:00
+
+--- kk-api.service status ---
+● kk-api.service - KijaniKiosk API Service
+     Loaded: loaded (/etc/systemd/system/kk-api.service; enabled; vendor preset: enabled)
+     Active: active (running) since Wed 2026-06-24 19:09:35 UTC; 52s ago
+       Docs: https://github.com/GIOVESS/kijanikiosk-devops-foundation
+   Main PID: 681 (sleep)
+      Tasks: 1 (limit: 2307)
+     Memory: 444.0K
+        CPU: 83ms
+     CGroup: /system.slice/kk-api.service
+             └─681 /bin/sleep infinity
+
+Warning: some journal files were not opened due to insufficient permissions.
+
+--- Package holds ---
+nginx
+nodejs
+
+--- UFW status ---
+Status: active
+
+To                         Action      From
+--                         ------      ----
+22/tcp                     ALLOW       Anywhere                   # SSH: remote administration
+80/tcp                     ALLOW       Anywhere                   # HTTP: nginx ingress
+22/tcp (v6)                ALLOW       Anywhere (v6)              # SSH: remote administration
+80/tcp (v6)                ALLOW       Anywhere (v6)              # HTTP: nginx ingress
+
