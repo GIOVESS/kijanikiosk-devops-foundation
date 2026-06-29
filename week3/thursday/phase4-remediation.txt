@@ -1,0 +1,41 @@
+=== PHASE 4: REMEDIATION ===
+Date: 2026-06-24T19:49:51+00:00
+
+--- FIX 1: Kill rogue process on port 3001 ---
+Rogue PID: 
+Process details:
+error: process ID list syntax error
+
+Usage:
+ ps [options]
+
+ Try 'ps --help <simple|list|output|threads|misc|all>'
+  or 'ps --help <s|l|o|t|m|a>'
+ for additional help text.
+
+For more details see ps(1).
+Sending SIGTERM...
+kill: usage: kill [-s sigspec | -n signum | -sigspec] pid | jobspec ... or kill -l [sigspec]
+Process terminated cleanly
+Port 3001 after fix:
+LISTEN 0      511        127.0.0.1:3001      0.0.0.0:*          
+
+--- FIX 2: Remove erroneous firewall rule ---
+Rules before:
+[ 3] 3001/tcp                   DENY IN     Anywhere                   # MISCONFIGURED: blocks health checks
+[ 6] 3001/tcp (v6)              DENY IN     Anywhere (v6)              # MISCONFIGURED: blocks health checks
+Rule deleted
+Rule deleted (v6)
+Deny rule removed (PASS)
+
+--- FIX 3: Emergency log rotation ---
+Disk before:
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda1        39G  3.7G   36G  10% /
+1.6G	/opt/kijanikiosk/shared/logs/
+Running forced logrotate...
+Disk after:
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda1        39G  3.7G   36G  10% /
+1.6G	/opt/kijanikiosk/shared/logs/
+

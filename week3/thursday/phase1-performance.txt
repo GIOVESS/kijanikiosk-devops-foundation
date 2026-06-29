@@ -1,0 +1,158 @@
+=== PHASE 1: PERFORMANCE ===
+Date: 2026-06-24T19:44:25+00:00
+
+--- top snapshot ---
+top - 19:44:25 up 34 min,  1 user,  load average: 0.10, 0.09, 0.04
+Tasks: 114 total,   1 running, 113 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.0 us,  0.0 sy,  0.0 ni,100.0 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+MiB Mem :   1963.7 total,    201.0 free,    190.8 used,   1571.9 buff/cache
+MiB Swap:      0.0 total,      0.0 free,      0.0 used.   1602.6 avail Mem 
+
+    PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+   3849 vagrant   20   0   10768   3860   3248 R   5.9   0.2   0:00.01 top
+      1 root      20   0  167588  13100   8380 S   0.0   0.7   0:05.46 systemd
+      2 root      20   0       0      0      0 S   0.0   0.0   0:00.00 kthreadd
+      3 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 rcu_gp
+      4 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 rcu_par+
+      5 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 slub_fl+
+      6 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 netns
+      8 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+     10 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 mm_perc+
+     11 root      20   0       0      0      0 S   0.0   0.0   0:00.00 rcu_tas+
+     12 root      20   0       0      0      0 S   0.0   0.0   0:00.00 rcu_tas+
+     13 root      20   0       0      0      0 S   0.0   0.0   0:00.07 ksoftir+
+     14 root      20   0       0      0      0 I   0.0   0.0   0:00.12 rcu_sch+
+
+--- vmstat 2 5 ---
+procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
+ r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st
+ 0  0      0 205776  16572 1593124    0    0   159   483   51   47  0  1 99  0  0
+ 0  0      0 205776  16572 1593296    0    0     0     0   65   40  0  0 100  0  0
+ 1  0      0 205776  16572 1593296    0    0     0     0   63   40  0  0 100  0  0
+ 0  0      0 205776  16580 1593288    0    0     0    26  119   47  0  0 96  4  0
+ 0  0      0 205776  16580 1593296    0    0     0     0   64   38  0  0 100  0  0
+
+--- iostat ---
+Linux 5.15.0-181-generic (kijanikiosk-prod) 	06/24/26 	_x86_64_	(2 CPU)
+
+avg-cpu:  %user   %nice %system %iowait  %steal   %idle
+           0.4%    0.0%    0.6%    0.4%    0.0%   98.6%
+
+     r/s     rkB/s   rrqm/s  %rrqm r_await rareq-sz Device
+    0.03      0.5k     0.00   0.0%    0.29    16.2k loop0
+    0.12      1.1k     0.00   0.0%    0.25     9.8k loop1
+    0.03      0.2k     0.00   0.0%    0.29     6.7k loop2
+    0.01      0.0k     0.00   0.0%    0.00     1.3k loop3
+    5.24    311.7k     1.07  17.0%    0.81    59.5k sda
+    0.17      1.5k     0.00   0.0%    0.19     8.8k sdb
+
+     w/s     wkB/s   wrqm/s  %wrqm w_await wareq-sz Device
+    0.00      0.0k     0.00   0.0%    0.00     0.0k loop0
+    0.00      0.0k     0.00   0.0%    0.00     0.0k loop1
+    0.00      0.0k     0.00   0.0%    0.00     0.0k loop2
+    0.00      0.0k     0.00   0.0%    0.00     0.0k loop3
+    2.83    959.1k     1.10  28.0%    9.94   339.0k sda
+    0.00      0.0k     0.00   0.0%    0.00     0.0k sdb
+
+     d/s     dkB/s   drqm/s  %drqm d_await dareq-sz Device
+    0.00      0.0k     0.00   0.0%    0.00     0.0k loop0
+    0.00      0.0k     0.00   0.0%    0.00     0.0k loop1
+    0.00      0.0k     0.00   0.0%    0.00     0.0k loop2
+    0.00      0.0k     0.00   0.0%    0.00     0.0k loop3
+    0.00      0.0k     0.00   0.0%    0.00     0.0k sda
+    0.00      0.0k     0.00   0.0%    0.00     0.0k sdb
+
+     f/s f_await  aqu-sz  %util Device
+    0.00    0.00    0.00   0.0% loop0
+    0.00    0.00    0.00   0.0% loop1
+    0.00    0.00    0.00   0.0% loop2
+    0.00    0.00    0.00   0.0% loop3
+    0.14   11.92    0.03   1.1% sda
+    0.00    0.00    0.00   0.0% sdb
+
+
+avg-cpu:  %user   %nice %system %iowait  %steal   %idle
+           0.0%    0.0%    0.0%    0.0%    0.0%  100.0%
+
+     r/s     rkB/s   rrqm/s  %rrqm r_await rareq-sz Device
+    0.00      0.0k     0.00   0.0%    0.00     0.0k loop0
+    0.00      0.0k     0.00   0.0%    0.00     0.0k loop1
+    0.00      0.0k     0.00   0.0%    0.00     0.0k loop2
+    0.00      0.0k     0.00   0.0%    0.00     0.0k loop3
+    0.00      0.0k     0.00   0.0%    0.00     0.0k sda
+    0.00      0.0k     0.00   0.0%    0.00     0.0k sdb
+
+     w/s     wkB/s   wrqm/s  %wrqm w_await wareq-sz Device
+    0.00      0.0k     0.00   0.0%    0.00     0.0k loop0
+    0.00      0.0k     0.00   0.0%    0.00     0.0k loop1
+    0.00      0.0k     0.00   0.0%    0.00     0.0k loop2
+    0.00      0.0k     0.00   0.0%    0.00     0.0k loop3
+    0.00      0.0k     0.00   0.0%    0.00     0.0k sda
+    0.00      0.0k     0.00   0.0%    0.00     0.0k sdb
+
+     d/s     dkB/s   drqm/s  %drqm d_await dareq-sz Device
+    0.00      0.0k     0.00   0.0%    0.00     0.0k loop0
+    0.00      0.0k     0.00   0.0%    0.00     0.0k loop1
+    0.00      0.0k     0.00   0.0%    0.00     0.0k loop2
+    0.00      0.0k     0.00   0.0%    0.00     0.0k loop3
+    0.00      0.0k     0.00   0.0%    0.00     0.0k sda
+    0.00      0.0k     0.00   0.0%    0.00     0.0k sdb
+
+     f/s f_await  aqu-sz  %util Device
+    0.00    0.00    0.00   0.0% loop0
+    0.00    0.00    0.00   0.0% loop1
+    0.00    0.00    0.00   0.0% loop2
+    0.00    0.00    0.00   0.0% loop3
+    0.00    0.00    0.00   0.0% sda
+    0.00    0.00    0.00   0.0% sdb
+
+
+avg-cpu:  %user   %nice %system %iowait  %steal   %idle
+           0.0%    0.0%    0.2%    0.0%    0.0%   99.8%
+
+     r/s     rkB/s   rrqm/s  %rrqm r_await rareq-sz Device
+    0.00      0.0k     0.00   0.0%    0.00     0.0k loop0
+    0.00      0.0k     0.00   0.0%    0.00     0.0k loop1
+    0.00      0.0k     0.00   0.0%    0.00     0.0k loop2
+    0.00      0.0k     0.00   0.0%    0.00     0.0k loop3
+    0.00      0.0k     0.00   0.0%    0.00     0.0k sda
+    0.00      0.0k     0.00   0.0%    0.00     0.0k sdb
+
+     w/s     wkB/s   wrqm/s  %wrqm w_await wareq-sz Device
+    0.00      0.0k     0.00   0.0%    0.00     0.0k loop0
+    0.00      0.0k     0.00   0.0%    0.00     0.0k loop1
+    0.00      0.0k     0.00   0.0%    0.00     0.0k loop2
+    0.00      0.0k     0.00   0.0%    0.00     0.0k loop3
+    0.00      0.0k     0.00   0.0%    0.00     0.0k sda
+    0.00      0.0k     0.00   0.0%    0.00     0.0k sdb
+
+     d/s     dkB/s   drqm/s  %drqm d_await dareq-sz Device
+    0.00      0.0k     0.00   0.0%    0.00     0.0k loop0
+    0.00      0.0k     0.00   0.0%    0.00     0.0k loop1
+    0.00      0.0k     0.00   0.0%    0.00     0.0k loop2
+    0.00      0.0k     0.00   0.0%    0.00     0.0k loop3
+    0.00      0.0k     0.00   0.0%    0.00     0.0k sda
+    0.00      0.0k     0.00   0.0%    0.00     0.0k sdb
+
+     f/s f_await  aqu-sz  %util Device
+    0.00    0.00    0.00   0.0% loop0
+    0.00    0.00    0.00   0.0% loop1
+    0.00    0.00    0.00   0.0% loop2
+    0.00    0.00    0.00   0.0% loop3
+    0.00    0.00    0.00   0.0% sda
+    0.00    0.00    0.00   0.0% sdb
+
+
+
+--- disk usage ---
+Filesystem      Size  Used Avail Use% Mounted on
+tmpfs           197M  980K  196M   1% /run
+/dev/sda1        39G  3.7G   36G  10% /
+tmpfs           982M     0  982M   0% /dev/shm
+tmpfs           5.0M     0  5.0M   0% /run/lock
+vagrant         233G   54G  179G  24% /vagrant
+tmpfs           197M  4.0K  197M   1% /run/user/1000
+
+--- log directory size ---
+1.6G	/opt/kijanikiosk/shared/logs/
+

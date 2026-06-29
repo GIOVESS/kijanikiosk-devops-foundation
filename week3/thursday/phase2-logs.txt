@@ -1,0 +1,42 @@
+=== PHASE 2: LOGS ===
+Date: 2026-06-24T19:44:56+00:00
+
+--- kk-payments errors last 60 min ---
+-- No entries --
+
+--- nginx error log ---
+
+--- kern.log disk errors ---
+Jun 24 19:09:35 kijanikiosk-prod kernel: [    1.847961] scsi 2:0:1:0: Direct-Access     VBOX     HARDDISK         1.0  PQ: 0 ANSI: 5
+Jun 24 19:09:35 kijanikiosk-prod kernel: [    1.865702] scsi target2:0:1: Beginning Domain Validation
+Jun 24 19:09:35 kijanikiosk-prod kernel: [    1.868372] scsi target2:0:1: Domain Validation skipping write tests
+Jun 24 19:09:35 kijanikiosk-prod kernel: [    1.869155] scsi target2:0:1: Ending Domain Validation
+Jun 24 19:09:35 kijanikiosk-prod kernel: [    1.869874] scsi target2:0:1: asynchronous
+Jun 24 19:09:35 kijanikiosk-prod kernel: [    1.875747] sd 2:0:0:0: Attached scsi generic sg0 type 0
+Jun 24 19:09:35 kijanikiosk-prod kernel: [    1.879144] sd 2:0:1:0: Attached scsi generic sg1 type 0
+Jun 24 19:09:35 kijanikiosk-prod kernel: [    1.893109] sd 2:0:0:0: [sda] Attached SCSI disk
+Jun 24 19:09:35 kijanikiosk-prod kernel: [    1.895217] sd 2:0:1:0: [sdb] Attached SCSI disk
+Jun 24 19:09:35 kijanikiosk-prod kernel: [    3.069456] EXT4-fs (sda1): mounted filesystem with ordered data mode. Opts: (null). Quota mode: none.
+
+--- logrotate config ---
+/opt/kijanikiosk/shared/logs/*.log {
+    su kk-api kijanikiosk
+    daily
+    missingok
+    rotate 14
+    compress
+    delaycompress
+    notifempty
+    create 0640 kk-api kijanikiosk
+    sharedscripts
+    postrotate
+        systemctl reload kk-logs.service 2>/dev/null || true
+    endscript
+}
+
+--- log file sizes ---
+513M	/opt/kijanikiosk/shared/logs/payments-2024-03-10.log
+513M	/opt/kijanikiosk/shared/logs/payments-2024-03-14.log
+513M	/opt/kijanikiosk/shared/logs/payments-2024-03-17.log
+0	/opt/kijanikiosk/shared/logs/test-write.tmp
+
