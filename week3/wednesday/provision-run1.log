@@ -1,0 +1,81 @@
+
+========================================
+[PHASE 1] SERVICE ACCOUNTS
+========================================
+[2026-06-24T19:08:23+00:00] [INFO]  Already exists: group kijanikiosk — skipping
+[2026-06-24T19:08:23+00:00] [INFO]  Already exists: kk-api (UID 995) — skipping
+[2026-06-24T19:08:23+00:00] [INFO]  kk-api already in kijanikiosk group — skipping
+[2026-06-24T19:08:23+00:00] [INFO]  Already exists: kk-payments (UID 997) — skipping
+[2026-06-24T19:08:23+00:00] [INFO]  kk-payments already in kijanikiosk group — skipping
+[2026-06-24T19:08:23+00:00] [INFO]  Already exists: kk-logs (UID 996) — skipping
+[2026-06-24T19:08:23+00:00] [INFO]  kk-logs already in kijanikiosk group — skipping
+
+========================================
+[PHASE 2] DIRECTORY STRUCTURE AND ACLs
+========================================
+[2026-06-24T19:08:23+00:00] [INFO]  Directory structure and ACLs applied
+
+========================================
+[PHASE 3] PACKAGE INSTALLATION AND PINNING
+========================================
+Canceled hold on nginx.
+[2026-06-24T19:08:30+00:00] [INFO]  Removed nginx hold
+nginx set on hold.
+[2026-06-24T19:08:31+00:00] [INFO]  nginx held at: 1.18.0-6ubuntu14.15
+Canceled hold on nodejs.
+[2026-06-24T19:08:32+00:00] [INFO]  Removed nodejs hold
+[2026-06-24T19:08:32+00:00] [INFO]  nodejs already installed — skipping
+nodejs set on hold.
+[2026-06-24T19:08:32+00:00] [INFO]  nodejs held at: 12.22.9~dfsg-1ubuntu3.6
+
+========================================
+[PHASE 4] SYSTEMD UNIT FILE — kk-api
+========================================
+[2026-06-24T19:08:32+00:00] [INFO]  Written: /etc/systemd/system/kk-api.service
+[2026-06-24T19:08:33+00:00] [INFO]  Enabled kk-api.service (not started — no app code deployed)
+
+========================================
+[PHASE 5] FIREWALL
+========================================
+Backing up 'user.rules' to '/etc/ufw/user.rules.20260624_190834'
+Backing up 'before.rules' to '/etc/ufw/before.rules.20260624_190834'
+Backing up 'after.rules' to '/etc/ufw/after.rules.20260624_190834'
+Backing up 'user6.rules' to '/etc/ufw/user6.rules.20260624_190834'
+Backing up 'before6.rules' to '/etc/ufw/before6.rules.20260624_190834'
+Backing up 'after6.rules' to '/etc/ufw/after6.rules.20260624_190834'
+
+Firewall stopped and disabled on system startup
+Default incoming policy changed to 'deny'
+(be sure to update your rules accordingly)
+Default outgoing policy changed to 'allow'
+(be sure to update your rules accordingly)
+Rules updated
+Rules updated (v6)
+Rules updated
+Rules updated (v6)
+Firewall is active and enabled on system startup
+[2026-06-24T19:08:36+00:00] [INFO]  Firewall enabled: SSH (22) and HTTP (80) allowed, all else denied
+
+========================================
+[PHASE 6] VERIFICATION
+========================================
+[2026-06-24T19:08:36+00:00] [PASS]  PASS: kk-api exists
+[2026-06-24T19:08:36+00:00] [PASS]  PASS: kk-api in kijanikiosk group
+[2026-06-24T19:08:36+00:00] [PASS]  PASS: kk-payments exists
+[2026-06-24T19:08:36+00:00] [PASS]  PASS: kk-payments in kijanikiosk group
+[2026-06-24T19:08:36+00:00] [PASS]  PASS: kk-logs exists
+[2026-06-24T19:08:36+00:00] [PASS]  PASS: kk-logs in kijanikiosk group
+[2026-06-24T19:08:36+00:00] [PASS]  PASS: config dir mode 750
+[2026-06-24T19:08:36+00:00] [PASS]  PASS: shared/logs setgid mode (2770)
+[2026-06-24T19:08:36+00:00] [PASS]  PASS: shared/logs ACL kk-api:rwx
+[2026-06-24T19:08:36+00:00] [FAIL]  FAIL: nginx held
+[2026-06-24T19:08:36+00:00] [PASS]  PASS: nodejs held
+[2026-06-24T19:08:36+00:00] [PASS]  PASS: kk-api.service enabled
+[2026-06-24T19:08:36+00:00] [PASS]  PASS: kk-api hardening score < 4.0 (1.8)
+[2026-06-24T19:08:36+00:00] [PASS]  PASS: ufw SSH allowed
+[2026-06-24T19:08:36+00:00] [PASS]  PASS: ufw HTTP allowed
+
+========================================
+[2026-06-24T19:08:36+00:00] [FAIL]  1 check(s) failed:
+[2026-06-24T19:08:36+00:00] [FAIL]    ✗ nginx held
+========================================
