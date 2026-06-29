@@ -1,0 +1,106 @@
+=== KijaniKiosk Post-Remediation Verification ===
+Timestamp: 2026-06-22T06:56:46+00:00
+Hostname:  kijanikiosk-prod
+
+--- [1] Force logrotate and check resulting file permissions ---
+
+--- [2] Directory listing after rotation ---
+total 12
+drwxrws---+ 2 kk-api kijanikiosk 4096 Jun 22 06:14 .
+drwxr-xr-x  3 root   root        4096 Jun 22 05:35 ..
+-rw-rw----+ 1 kk-api kijanikiosk    0 Jun 22 06:52 test-write.tmp
+
+--- [3] ACL state on shared/logs after rotation ---
+# file: opt/kijanikiosk/shared/logs/
+# owner: kk-api
+# group: kijanikiosk
+# flags: -s-
+user::rwx
+user:kk-api:rwx
+user:kk-logs:rwx
+user:kk-payments:r-x
+group::r-x
+mask::rwx
+other::---
+default:user::rwx
+default:user:kk-api:rwx
+default:user:kk-logs:rwx
+default:user:kk-payments:r-x
+default:group::r-x
+default:mask::rwx
+default:other::---
+
+
+--- [4] Definitive access model test: kk-api write after logrotate ---
+PASS: kk-api can write after logrotate
+
+--- [5] kk-payments read access after logrotate ---
+test-write.tmp
+PASS: kk-payments can read shared/logs
+
+--- [6] Health check JSON readable by kijanikiosk group ---
+{"timestamp":"2026-06-22T06:56:45+00:00","kk-api":"down","kk-payments":"down"}
+
+-rw-r----- 1 kk-logs kijanikiosk 79 Jun 22 06:56 /opt/kijanikiosk/health/last-provision.json
+
+--- [7] logrotate --debug clean pass ---
+WARNING: logrotate in debug mode does nothing except printing debug messages!  Consider using verbose mode (-v) instead if this is not what you want.
+
+reading config file /etc/logrotate.d/kijanikiosk
+Reading state from file: /var/lib/logrotate/status
+Allocating hash table for state file, size 64 entries
+Creating new state
+
+Handling 1 logs
+
+rotating pattern: /opt/kijanikiosk/shared/logs/*.log  after 1 days (14 rotations)
+empty log files are not rotated, old logs are removed
+switching euid from 0 to 995 and egid from 0 to 1002 (pid 10860)
+considering log /opt/kijanikiosk/shared/logs/*.log
+  log /opt/kijanikiosk/shared/logs/*.log does not exist -- skipping
+not running postrotate script, since no logs were rotated
+switching euid from 995 to 0 and egid from 1002 to 0 (pid 10860)
+
+--- [8] Service states ---
+active
+ACTIVE: kk-api
+active
+ACTIVE: kk-payments
+active
+ACTIVE: kk-logs
+
+--- [9] Hardening scores (final) ---
+kk-api.service: 1.8
+kk-logs.service: 1.8
+kk-payments.service: 1.2
+
+--- [10] UFW final ruleset ---
+Status: active
+Logging: on (low)
+Default: deny (incoming), allow (outgoing), disabled (routed)
+New profiles: skip
+
+To                         Action      From
+--                         ------      ----
+22/tcp                     ALLOW IN    Anywhere                   # SSH: remote administration
+80/tcp                     ALLOW IN    Anywhere                   # HTTP: nginx ingress for kk-api reverse proxy
+3000 on lo                 ALLOW IN    Anywhere                   # kk-api: loopback only, nginx proxy target
+3001 on lo                 ALLOW IN    Anywhere                   # kk-payments: loopback only, nginx proxy target
+3001                       ALLOW IN    10.0.1.0/24                # kk-payments: health endpoint, monitoring subnet only
+3001                       DENY IN     Anywhere                   # kk-payments: block all external access (internal service port)
+22/tcp (v6)                ALLOW IN    Anywhere (v6)              # SSH: remote administration
+80/tcp (v6)                ALLOW IN    Anywhere (v6)              # HTTP: nginx ingress for kk-api reverse proxy
+3000 (v6) on lo            ALLOW IN    Anywhere (v6)              # kk-api: loopback only, nginx proxy target
+3001 (v6) on lo            ALLOW IN    Anywhere (v6)              # kk-payments: loopback only, nginx proxy target
+3001 (v6)                  DENY IN     Anywhere (v6)              # kk-payments: block all external access (internal service port)
+
+
+--- [11] nginx hold status ---
+nginx
+
+--- [12] Journal persistence confirmation ---
+total 12
+drwxr-sr-x+ 3 root systemd-journal 4096 Jun 22 05:32 .
+drwxrwxr-x  9 root syslog          4096 Jun 22 05:33 ..
+drwxr-sr-x+ 2 root systemd-journal 4096 Jun 22 05:32 c67ebab1982045ce923e1a8228f129f6
+Archived and active journals take up 16.0M in the file system.
