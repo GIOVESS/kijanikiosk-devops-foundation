@@ -1,0 +1,26 @@
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  [32m+[0m create[0m
+
+Terraform will perform the following actions:
+
+[1m  # null_resource.kijanikiosk_api[0m will be created
+[0m  [32m+[0m[0m resource "null_resource" "kijanikiosk_api" {
+      [32m+[0m[0m id       = (known after apply)
+      [32m+[0m[0m triggers = {
+          [32m+[0m[0m "ip" = "192.168.56.11"
+        }
+    }
+
+[1mPlan:[0m [0m1 to add, 0 to change, 0 to destroy.
+
+Changes to Outputs:
+  [32m+[0m[0m api_server_ip = "192.168.56.11"
+[90m
+─────────────────────────────────────────────────────────────────────────────[0m
+
+Saved the plan to: lab-plan.tfplan
+
+To perform exactly these actions, run the following command to apply:
+    terraform apply "lab-plan.tfplan"
