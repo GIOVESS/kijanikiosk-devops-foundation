@@ -1,0 +1,149 @@
+[2026-07-06T19:39:34+03:00] Ensuring Vagrant VMs are up...
+Bringing machine 'kijanikiosk-api' up with 'virtualbox' provider...
+Bringing machine 'kijanikiosk-payments' up with 'virtualbox' provider...
+Bringing machine 'kijanikiosk-logs' up with 'virtualbox' provider...
+==> kijanikiosk-api: Checking if box 'ubuntu/jammy64' version '20241002.0.0' is up to date...
+==> kijanikiosk-api: Machine already provisioned. Run `vagrant provision` or use the `--provision`
+==> kijanikiosk-api: flag to force provisioning. Provisioners marked to run always will still run.
+==> kijanikiosk-payments: Checking if box 'ubuntu/jammy64' version '20241002.0.0' is up to date...
+==> kijanikiosk-payments: Machine already provisioned. Run `vagrant provision` or use the `--provision`
+==> kijanikiosk-payments: flag to force provisioning. Provisioners marked to run always will still run.
+==> kijanikiosk-logs: Checking if box 'ubuntu/jammy64' version '20241002.0.0' is up to date...
+==> kijanikiosk-logs: Machine already provisioned. Run `vagrant provision` or use the `--provision`
+==> kijanikiosk-logs: flag to force provisioning. Provisioners marked to run always will still run.
+[2026-07-06T19:39:42+03:00] Running Terraform apply...
+[0m[1mmodule.app_servers["api"].null_resource.this: Refreshing state... [id=671067507417915897][0m
+[0m[1mmodule.app_servers["payments"].null_resource.this: Refreshing state... [id=3775822700000356883][0m
+[0m[1mmodule.app_servers["logs"].null_resource.this: Refreshing state... [id=6165620756705148688][0m
+
+[0m[1m[32mNo changes.[0m[1m Your infrastructure matches the configuration.[0m
+
+[0mTerraform has compared your real infrastructure against your configuration
+and found no differences, so no changes are needed.
+[0m[1m[32m
+Apply complete! Resources: 0 added, 0 changed, 0 destroyed.[0m
+[0m[1m[32m
+Outputs:
+
+[0mserver_ips = {
+  "api" = "192.168.56.11"
+  "logs" = "192.168.56.13"
+  "payments" = "192.168.56.12"
+}
+ssh_commands = {
+  "api" = "ssh -i /home/giovess/kijanikiosk-devops-foundation/.vagrant/machines/kijanikiosk-api/virtualbox/private_key vagrant@192.168.56.11"
+  "logs" = "ssh -i /home/giovess/kijanikiosk-devops-foundation/.vagrant/machines/kijanikiosk-logs/virtualbox/private_key vagrant@192.168.56.13"
+  "payments" = "ssh -i /home/giovess/kijanikiosk-devops-foundation/.vagrant/machines/kijanikiosk-payments/virtualbox/private_key vagrant@192.168.56.12"
+}
+[2026-07-06T19:39:43+03:00] Extracting server IPs from Terraform output...
+[2026-07-06T19:39:43+03:00] Writing inventory.ini...
+[2026-07-06T19:39:43+03:00] Running Ansible playbook...
+
+PLAY [Configure KijaniKiosk servers] *******************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [logs-staging]
+ok: [api-staging]
+ok: [payments-staging]
+
+TASK [Update apt cache] ********************************************************
+ok: [payments-staging]
+ok: [logs-staging]
+ok: [api-staging]
+
+TASK [Install required packages] ***********************************************
+ok: [payments-staging]
+ok: [logs-staging]
+ok: [api-staging]
+
+TASK [Hold nginx at current version] *******************************************
+ok: [payments-staging]
+ok: [logs-staging]
+ok: [api-staging]
+
+TASK [Create kijanikiosk system group] *****************************************
+ok: [payments-staging]
+ok: [api-staging]
+ok: [logs-staging]
+
+TASK [Create service account] **************************************************
+ok: [logs-staging]
+ok: [api-staging]
+ok: [payments-staging]
+
+TASK [Create application directory tree] ***************************************
+ok: [logs-staging] => (item={'path': '/opt/kijanikiosk', 'owner': 'root', 'mode': '0750'})
+ok: [api-staging] => (item={'path': '/opt/kijanikiosk', 'owner': 'root', 'mode': '0750'})
+ok: [payments-staging] => (item={'path': '/opt/kijanikiosk', 'owner': 'root', 'mode': '0750'})
+ok: [logs-staging] => (item={'path': '/opt/kijanikiosk/config', 'owner': 'root', 'mode': '0750'})
+ok: [api-staging] => (item={'path': '/opt/kijanikiosk/config', 'owner': 'root', 'mode': '0750'})
+ok: [payments-staging] => (item={'path': '/opt/kijanikiosk/config', 'owner': 'root', 'mode': '0750'})
+ok: [logs-staging] => (item={'path': '/opt/kijanikiosk/shared/logs', 'owner': 'kk-logs', 'mode': '2750'})
+ok: [api-staging] => (item={'path': '/opt/kijanikiosk/shared/logs', 'owner': 'kk-api', 'mode': '2750'})
+ok: [payments-staging] => (item={'path': '/opt/kijanikiosk/shared/logs', 'owner': 'kk-payments', 'mode': '2750'})
+ok: [logs-staging] => (item={'path': '/opt/kijanikiosk/health', 'owner': 'root', 'mode': '0750'})
+ok: [payments-staging] => (item={'path': '/opt/kijanikiosk/health', 'owner': 'root', 'mode': '0750'})
+ok: [api-staging] => (item={'path': '/opt/kijanikiosk/health', 'owner': 'root', 'mode': '0750'})
+
+TASK [Create service environment file] *****************************************
+ok: [payments-staging]
+ok: [api-staging]
+ok: [logs-staging]
+
+TASK [Deploy systemd unit file] ************************************************
+ok: [logs-staging]
+ok: [payments-staging]
+ok: [api-staging]
+
+TASK [Enable and start service] ************************************************
+ok: [logs-staging]
+ok: [api-staging]
+ok: [payments-staging]
+
+TASK [Set ufw default deny incoming] *******************************************
+ok: [logs-staging]
+ok: [payments-staging]
+ok: [api-staging]
+
+TASK [Set ufw default allow outgoing] ******************************************
+ok: [logs-staging]
+ok: [payments-staging]
+ok: [api-staging]
+
+TASK [Apply host firewall rules] ***********************************************
+ok: [logs-staging] => (item={'rule': 'allow', 'port': '22', 'proto': 'tcp', 'comment': 'SSH: remote administration'})
+ok: [api-staging] => (item={'rule': 'allow', 'port': '22', 'proto': 'tcp', 'comment': 'SSH: remote administration'})
+ok: [payments-staging] => (item={'rule': 'allow', 'port': '22', 'proto': 'tcp', 'comment': 'SSH: remote administration'})
+ok: [logs-staging] => (item={'rule': 'allow', 'port': 5000, 'proto': 'tcp', 'interface': 'lo', 'direction': 'in', 'comment': 'kk-logs: loopback only'})
+ok: [payments-staging] => (item={'rule': 'allow', 'port': 3001, 'proto': 'tcp', 'interface': 'lo', 'direction': 'in', 'comment': 'kk-payments: loopback only, nginx proxy target'})
+ok: [api-staging] => (item={'rule': 'allow', 'port': '80', 'proto': 'tcp', 'comment': 'HTTP: nginx ingress for kk-api reverse proxy'})
+ok: [payments-staging] => (item={'rule': 'allow', 'port': 3001, 'proto': 'tcp', 'from_ip': '10.0.1.0/24', 'comment': 'kk-payments: health endpoint, monitoring subnet only'})
+ok: [api-staging] => (item={'rule': 'allow', 'port': 3000, 'proto': 'tcp', 'interface': 'lo', 'direction': 'in', 'comment': 'kk-api: loopback only, nginx proxy target'})
+ok: [payments-staging] => (item={'rule': 'deny', 'port': 3001, 'proto': 'tcp', 'comment': 'kk-payments: block all external access (internal service port)'})
+
+TASK [Create journald config override directory] *******************************
+ok: [payments-staging]
+ok: [api-staging]
+ok: [logs-staging]
+
+TASK [Create persistent journal directory] *************************************
+ok: [payments-staging]
+ok: [api-staging]
+ok: [logs-staging]
+
+TASK [Deploy journald persistence config] **************************************
+ok: [logs-staging]
+ok: [api-staging]
+ok: [payments-staging]
+
+TASK [Deploy logrotate configuration] ******************************************
+ok: [payments-staging]
+ok: [logs-staging]
+ok: [api-staging]
+
+PLAY RECAP *********************************************************************
+api-staging                : ok=17   changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+logs-staging               : ok=17   changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+payments-staging           : ok=17   changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
+[2026-07-06T19:40:12+03:00] Pipeline completed successfully.

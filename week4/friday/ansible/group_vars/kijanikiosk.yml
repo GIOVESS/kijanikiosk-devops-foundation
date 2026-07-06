@@ -1,0 +1,12 @@
+service_group: kijanikiosk
+base_dir: /opt/kijanikiosk
+config_dir: /opt/kijanikiosk/config
+log_dir: /opt/kijanikiosk/shared/logs
+health_dir: /opt/kijanikiosk/health
+required_packages:
+  - acl
+  - ufw
+  - git
+  - logrotate
+  - curl
+ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'

@@ -1,0 +1,9 @@
+service_name: kk-api
+service_port: 3000
+env_filename: api.env
+hardening_score_max: 3.5
+ansible_ssh_private_key_file: "/home/giovess/kijanikiosk-devops-foundation/.vagrant/machines/kijanikiosk-api/virtualbox/private_key"
+firewall_rules:
+  - { rule: allow, port: "22", proto: tcp, comment: "SSH: remote administration" }
+  - { rule: allow, port: "80", proto: tcp, comment: "HTTP: nginx ingress for kk-api reverse proxy" }
+  - { rule: allow, port: "{{ service_port }}", proto: tcp, interface: lo, direction: "in", comment: "kk-api: loopback only, nginx proxy target" }
