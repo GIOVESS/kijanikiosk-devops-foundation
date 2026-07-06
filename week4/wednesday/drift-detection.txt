@@ -1,0 +1,20 @@
+[0m[1mmodule.app_servers["payments"].null_resource.this: Refreshing state... [id=593682899195046162][0m
+[0m[1mmodule.app_servers["logs"].null_resource.this: Refreshing state... [id=6546892899504801655][0m
+[0m[1mmodule.app_servers["api"].null_resource.this: Refreshing state... [id=10503558768113016][0m
+
+[0m[1m[32mNo changes.[0m[1m Your infrastructure matches the configuration.[0m
+
+[0mTerraform has compared your real infrastructure against your configuration
+and found no differences, so no changes are needed.
+
+## Documented Finding
+Change made: `sudo ufw allow 9999/tcp` on kijanikiosk-payments (out-of-band, outside Terraform).
+Detection result: terraform plan reported "No changes." — drift NOT detected.
+Root cause: null_resource's only tracked attribute is the `triggers` map (here, just `ip`).
+It has no concept of the VM's internal state, so anything changed inside the VM via SSH,
+provisioner script, or manual login is invisible to plan/refresh. This is expected and
+correct behavior for null_resource — it is a connection/execution shim, not a real
+infrastructure resource with a provider-side representation to diff against.
+Remediation: not applicable to Terraform in this pattern. Configuration drift at the OS
+level (firewall rules, packages, files) is Ansible's responsibility, not Terraform's —
+this is the tool boundary the Monday lab introduced.

@@ -1,0 +1,51 @@
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  [32m+[0m create[0m
+
+Terraform will perform the following actions:
+
+[1m  # module.app_servers["api"].null_resource.this[0m will be created
+[0m  [32m+[0m[0m resource "null_resource" "this" {
+      [32m+[0m[0m id       = (known after apply)
+      [32m+[0m[0m triggers = {
+          [32m+[0m[0m "ip" = "192.168.56.11"
+        }
+    }
+
+[1m  # module.app_servers["logs"].null_resource.this[0m will be created
+[0m  [32m+[0m[0m resource "null_resource" "this" {
+      [32m+[0m[0m id       = (known after apply)
+      [32m+[0m[0m triggers = {
+          [32m+[0m[0m "ip" = "192.168.56.13"
+        }
+    }
+
+[1m  # module.app_servers["payments"].null_resource.this[0m will be created
+[0m  [32m+[0m[0m resource "null_resource" "this" {
+      [32m+[0m[0m id       = (known after apply)
+      [32m+[0m[0m triggers = {
+          [32m+[0m[0m "ip" = "192.168.56.12"
+        }
+    }
+
+[1mPlan:[0m [0m3 to add, 0 to change, 0 to destroy.
+
+Changes to Outputs:
+  [32m+[0m[0m server_ips   = {
+      [32m+[0m[0m api      = "192.168.56.11"
+      [32m+[0m[0m logs     = "192.168.56.13"
+      [32m+[0m[0m payments = "192.168.56.12"
+    }
+  [32m+[0m[0m ssh_commands = {
+      [32m+[0m[0m api      = "ssh -i /home/giovess/kijanikiosk-devops-foundation/.vagrant/machines/kijanikiosk-api/virtualbox/private_key vagrant@192.168.56.11"
+      [32m+[0m[0m logs     = "ssh -i /home/giovess/kijanikiosk-devops-foundation/.vagrant/machines/kijanikiosk-logs/virtualbox/private_key vagrant@192.168.56.13"
+      [32m+[0m[0m payments = "ssh -i /home/giovess/kijanikiosk-devops-foundation/.vagrant/machines/kijanikiosk-payments/virtualbox/private_key vagrant@192.168.56.12"
+    }
+[90m
+─────────────────────────────────────────────────────────────────────────────[0m
+
+Saved the plan to: refactor.tfplan
+
+To perform exactly these actions, run the following command to apply:
+    terraform apply "refactor.tfplan"
