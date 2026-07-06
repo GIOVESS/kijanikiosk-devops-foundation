@@ -1,0 +1,157 @@
+---
+- name: Configure KijaniKiosk servers
+  hosts: kijanikiosk
+  become: true
+  become_method: sudo
+
+  handlers:
+    - name: Reload systemd
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: Restart service
+      when: not ansible_check_mode
+      ansible.builtin.systemd:
+        name: "{{ service_name }}.service"
+        state: restarted
+
+    - name: Restart journald
+      ansible.builtin.systemd:
+        name: systemd-journald
+        state: restarted
+
+  tasks:
+    # --- PHASE 1: PACKAGES ---
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Install required packages
+      ansible.builtin.apt:
+        name: "{{ required_packages + ['nginx'] }}"
+        state: present
+        install_recommends: false
+
+    - name: Hold nginx at current version
+      when: not ansible_check_mode
+      ansible.builtin.dpkg_selections:
+        name: nginx
+        selection: hold
+
+    # --- PHASE 2: SERVICE ACCOUNTS ---
+    - name: Create kijanikiosk system group
+      ansible.builtin.group:
+        name: "{{ service_group }}"
+        system: true
+        state: present
+
+    - name: Create service account
+      ansible.builtin.user:
+        name: "{{ service_name }}"
+        system: true
+        create_home: false
+        shell: /usr/sbin/nologin
+        groups: "{{ service_group }}"
+        append: true
+        state: present
+
+    # --- PHASE 3: DIRECTORIES + ACLs ---
+    - name: Create application directory tree
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: directory
+        owner: "{{ item.owner }}"
+        group: "{{ service_group }}"
+        mode: "{{ item.mode }}"
+      loop:
+        - { path: "{{ base_dir }}", owner: root, mode: "0750" }
+        - { path: "{{ config_dir }}", owner: root, mode: "0750" }
+        - { path: "{{ log_dir }}", owner: "{{ service_name }}", mode: "2750" }
+        - { path: "{{ health_dir }}", owner: root, mode: "0750" }
+
+    - name: Create service environment file
+      ansible.builtin.file:
+        path: "{{ config_dir }}/{{ env_filename }}"
+        state: touch
+        owner: "{{ service_name }}"
+        group: "{{ service_group }}"
+        mode: "0640"
+        modification_time: preserve
+        access_time: preserve
+
+    # --- PHASE 4: SYSTEMD UNIT FILE ---
+    - name: Deploy systemd unit file
+      ansible.builtin.template:
+        src: "templates/{{ service_name }}.service.j2"
+        dest: "/etc/systemd/system/{{ service_name }}.service"
+        owner: root
+        group: root
+        mode: "0644"
+      notify:
+        - Reload systemd
+        - Restart service
+
+    - name: Enable and start service
+      when: not ansible_check_mode
+      ansible.builtin.systemd:
+        name: "{{ service_name }}.service"
+        enabled: true
+        state: started
+        daemon_reload: true
+
+    # --- PHASE 5: FIREWALL ---
+    - name: Set ufw default deny incoming
+      community.general.ufw:
+        state: enabled
+        default: deny
+        direction: incoming
+
+    - name: Set ufw default allow outgoing
+      community.general.ufw:
+        default: allow
+        direction: outgoing
+
+    - name: Apply host firewall rules
+      community.general.ufw:
+        rule: "{{ item.rule }}"
+        port: "{{ item.port }}"
+        proto: "{{ item.proto }}"
+        interface: "{{ item.interface | default(omit) }}"
+        direction: "{{ item.direction | default(omit) }}"
+        from_ip: "{{ item.from_ip | default(omit) }}"
+        comment: "{{ item.comment }}"
+      loop: "{{ firewall_rules }}"
+
+    # --- PHASE 6: JOURNAL PERSISTENCE ---
+    - name: Create journald config override directory
+      ansible.builtin.file:
+        path: /etc/systemd/journald.conf.d
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Create persistent journal directory
+      ansible.builtin.file:
+        path: /var/log/journal
+        state: directory
+        mode: "0755"
+
+    - name: Deploy journald persistence config
+      ansible.builtin.template:
+        src: templates/journald.conf.j2
+        dest: /etc/systemd/journald.conf.d/kijanikiosk.conf
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Restart journald
+
+    # --- PHASE 7: LOGROTATE ---
+    - name: Deploy logrotate configuration
+      ansible.builtin.template:
+        src: templates/logrotate.j2
+        dest: /etc/logrotate.d/kijanikiosk
+        owner: root
+        group: root
+        mode: "0644"

@@ -1,0 +1,10 @@
+service_name: kk-payments
+service_port: 3001
+env_filename: payments-api.env
+hardening_score_max: 2.5
+ansible_ssh_private_key_file: "/home/giovess/kijanikiosk-devops-foundation/.vagrant/machines/kijanikiosk-payments/virtualbox/private_key"
+firewall_rules:
+  - { rule: allow, port: "22", proto: tcp, comment: "SSH: remote administration" }
+  - { rule: allow, port: "{{ service_port }}", proto: tcp, interface: lo, direction: "in", comment: "kk-payments: loopback only, nginx proxy target" }
+  - { rule: allow, port: "{{ service_port }}", proto: tcp, from_ip: "10.0.1.0/24", comment: "kk-payments: health endpoint, monitoring subnet only" }
+  - { rule: deny, port: "{{ service_port }}", proto: tcp, comment: "kk-payments: block all external access (internal service port)" }

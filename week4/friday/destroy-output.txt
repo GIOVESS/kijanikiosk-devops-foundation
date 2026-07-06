@@ -1,0 +1,55 @@
+[0m[1mmodule.app_servers["payments"].null_resource.this: Refreshing state... [id=3775822700000356883][0m
+[0m[1mmodule.app_servers["api"].null_resource.this: Refreshing state... [id=671067507417915897][0m
+[0m[1mmodule.app_servers["logs"].null_resource.this: Refreshing state... [id=6165620756705148688][0m
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  [31m-[0m destroy[0m
+
+Terraform will perform the following actions:
+
+[1m  # module.app_servers["api"].null_resource.this[0m will be [1m[31mdestroyed[0m
+[0m  [31m-[0m[0m resource "null_resource" "this" {
+      [31m-[0m[0m id       = "671067507417915897" [90m-> null[0m[0m
+      [31m-[0m[0m triggers = {
+          [31m-[0m[0m "ip" = "192.168.56.11"
+        } [90m-> null[0m[0m
+    }
+
+[1m  # module.app_servers["logs"].null_resource.this[0m will be [1m[31mdestroyed[0m
+[0m  [31m-[0m[0m resource "null_resource" "this" {
+      [31m-[0m[0m id       = "6165620756705148688" [90m-> null[0m[0m
+      [31m-[0m[0m triggers = {
+          [31m-[0m[0m "ip" = "192.168.56.13"
+        } [90m-> null[0m[0m
+    }
+
+[1m  # module.app_servers["payments"].null_resource.this[0m will be [1m[31mdestroyed[0m
+[0m  [31m-[0m[0m resource "null_resource" "this" {
+      [31m-[0m[0m id       = "3775822700000356883" [90m-> null[0m[0m
+      [31m-[0m[0m triggers = {
+          [31m-[0m[0m "ip" = "192.168.56.12"
+        } [90m-> null[0m[0m
+    }
+
+[1mPlan:[0m [0m0 to add, 0 to change, 3 to destroy.
+
+Changes to Outputs:
+  [31m-[0m[0m server_ips   = {
+      [31m-[0m[0m api      = "192.168.56.11"
+      [31m-[0m[0m logs     = "192.168.56.13"
+      [31m-[0m[0m payments = "192.168.56.12"
+    } [90m-> null[0m[0m
+  [31m-[0m[0m ssh_commands = {
+      [31m-[0m[0m api      = "ssh -i /home/giovess/kijanikiosk-devops-foundation/.vagrant/machines/kijanikiosk-api/virtualbox/private_key vagrant@192.168.56.11"
+      [31m-[0m[0m logs     = "ssh -i /home/giovess/kijanikiosk-devops-foundation/.vagrant/machines/kijanikiosk-logs/virtualbox/private_key vagrant@192.168.56.13"
+      [31m-[0m[0m payments = "ssh -i /home/giovess/kijanikiosk-devops-foundation/.vagrant/machines/kijanikiosk-payments/virtualbox/private_key vagrant@192.168.56.12"
+    } [90m-> null[0m[0m
+[0m[1mmodule.app_servers["payments"].null_resource.this: Destroying... [id=3775822700000356883][0m[0m
+[0m[1mmodule.app_servers["api"].null_resource.this: Destroying... [id=671067507417915897][0m[0m
+[0m[1mmodule.app_servers["logs"].null_resource.this: Destroying... [id=6165620756705148688][0m[0m
+[0m[1mmodule.app_servers["payments"].null_resource.this: Destruction complete after 0s[0m
+[0m[1mmodule.app_servers["api"].null_resource.this: Destruction complete after 0s[0m
+[0m[1mmodule.app_servers["logs"].null_resource.this: Destruction complete after 0s[0m
+[0m[1m[32m
+Destroy complete! Resources: 3 destroyed.[0m

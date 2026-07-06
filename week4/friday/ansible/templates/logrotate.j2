@@ -1,0 +1,14 @@
+{{ log_dir }}/*.log {
+    su kk-api {{ service_group }}
+    daily
+    missingok
+    rotate 14
+    compress
+    delaycompress
+    notifempty
+    create 0640 kk-api {{ service_group }}
+    sharedscripts
+    postrotate
+        systemctl reload kk-logs.service 2>/dev/null || true
+    endscript
+}
