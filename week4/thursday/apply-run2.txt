@@ -1,0 +1,108 @@
+
+PLAY [Configure KijaniKiosk servers] *******************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [payments-staging]
+ok: [logs-staging]
+ok: [api-staging]
+
+TASK [Update apt cache] ********************************************************
+ok: [logs-staging]
+ok: [payments-staging]
+ok: [api-staging]
+
+TASK [Install required packages] ***********************************************
+ok: [logs-staging]
+ok: [payments-staging]
+ok: [api-staging]
+
+TASK [Hold nginx at current version] *******************************************
+ok: [api-staging]
+ok: [logs-staging]
+ok: [payments-staging]
+
+TASK [Create kijanikiosk system group] *****************************************
+ok: [api-staging]
+ok: [payments-staging]
+ok: [logs-staging]
+
+TASK [Create service account] **************************************************
+ok: [api-staging]
+ok: [payments-staging]
+ok: [logs-staging]
+
+TASK [Create application directory tree] ***************************************
+ok: [logs-staging] => (item={'path': '/opt/kijanikiosk', 'owner': 'root', 'mode': '0750'})
+ok: [payments-staging] => (item={'path': '/opt/kijanikiosk', 'owner': 'root', 'mode': '0750'})
+ok: [api-staging] => (item={'path': '/opt/kijanikiosk', 'owner': 'root', 'mode': '0750'})
+ok: [logs-staging] => (item={'path': '/opt/kijanikiosk/config', 'owner': 'root', 'mode': '0750'})
+ok: [payments-staging] => (item={'path': '/opt/kijanikiosk/config', 'owner': 'root', 'mode': '0750'})
+ok: [api-staging] => (item={'path': '/opt/kijanikiosk/config', 'owner': 'root', 'mode': '0750'})
+ok: [logs-staging] => (item={'path': '/opt/kijanikiosk/shared/logs', 'owner': 'kk-logs', 'mode': '2750'})
+ok: [payments-staging] => (item={'path': '/opt/kijanikiosk/shared/logs', 'owner': 'kk-payments', 'mode': '2750'})
+ok: [api-staging] => (item={'path': '/opt/kijanikiosk/shared/logs', 'owner': 'kk-api', 'mode': '2750'})
+ok: [logs-staging] => (item={'path': '/opt/kijanikiosk/health', 'owner': 'root', 'mode': '0750'})
+ok: [payments-staging] => (item={'path': '/opt/kijanikiosk/health', 'owner': 'root', 'mode': '0750'})
+ok: [api-staging] => (item={'path': '/opt/kijanikiosk/health', 'owner': 'root', 'mode': '0750'})
+
+TASK [Create service environment file] *****************************************
+ok: [payments-staging]
+ok: [api-staging]
+ok: [logs-staging]
+
+TASK [Deploy systemd unit file] ************************************************
+ok: [payments-staging]
+ok: [logs-staging]
+ok: [api-staging]
+
+TASK [Enable and start service] ************************************************
+ok: [logs-staging]
+ok: [api-staging]
+ok: [payments-staging]
+
+TASK [Set ufw default deny incoming] *******************************************
+ok: [payments-staging]
+ok: [api-staging]
+ok: [logs-staging]
+
+TASK [Set ufw default allow outgoing] ******************************************
+ok: [payments-staging]
+ok: [api-staging]
+ok: [logs-staging]
+
+TASK [Apply host firewall rules] ***********************************************
+ok: [api-staging] => (item={'rule': 'allow', 'port': '22', 'proto': 'tcp', 'comment': 'SSH: remote administration'})
+ok: [payments-staging] => (item={'rule': 'allow', 'port': '22', 'proto': 'tcp', 'comment': 'SSH: remote administration'})
+ok: [logs-staging] => (item={'rule': 'allow', 'port': '22', 'proto': 'tcp', 'comment': 'SSH: remote administration'})
+ok: [api-staging] => (item={'rule': 'allow', 'port': '80', 'proto': 'tcp', 'comment': 'HTTP: nginx ingress for kk-api reverse proxy'})
+ok: [logs-staging] => (item={'rule': 'allow', 'port': 5000, 'proto': 'tcp', 'interface': 'lo', 'direction': 'in', 'comment': 'kk-logs: loopback only'})
+ok: [payments-staging] => (item={'rule': 'allow', 'port': 3001, 'proto': 'tcp', 'interface': 'lo', 'direction': 'in', 'comment': 'kk-payments: loopback only, nginx proxy target'})
+ok: [api-staging] => (item={'rule': 'allow', 'port': 3000, 'proto': 'tcp', 'interface': 'lo', 'direction': 'in', 'comment': 'kk-api: loopback only, nginx proxy target'})
+ok: [payments-staging] => (item={'rule': 'allow', 'port': 3001, 'proto': 'tcp', 'from_ip': '10.0.1.0/24', 'comment': 'kk-payments: health endpoint, monitoring subnet only'})
+ok: [payments-staging] => (item={'rule': 'deny', 'port': 3001, 'proto': 'tcp', 'comment': 'kk-payments: block all external access (internal service port)'})
+
+TASK [Create journald config override directory] *******************************
+ok: [payments-staging]
+ok: [api-staging]
+ok: [logs-staging]
+
+TASK [Create persistent journal directory] *************************************
+ok: [api-staging]
+ok: [payments-staging]
+ok: [logs-staging]
+
+TASK [Deploy journald persistence config] **************************************
+ok: [payments-staging]
+ok: [logs-staging]
+ok: [api-staging]
+
+TASK [Deploy logrotate configuration] ******************************************
+ok: [logs-staging]
+ok: [api-staging]
+ok: [payments-staging]
+
+PLAY RECAP *********************************************************************
+api-staging                : ok=17   changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+logs-staging               : ok=17   changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+payments-staging           : ok=17   changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+

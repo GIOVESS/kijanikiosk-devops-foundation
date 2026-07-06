@@ -1,0 +1,8 @@
+service_name: kk-logs
+service_port: 5000
+env_filename: logs.env
+hardening_score_max: 3.5
+ansible_ssh_private_key_file: "/home/giovess/kijanikiosk-devops-foundation/.vagrant/machines/kijanikiosk-logs/virtualbox/private_key"
+firewall_rules:
+  - { rule: allow, port: "22", proto: tcp, comment: "SSH: remote administration" }
+  - { rule: allow, port: "{{ service_port }}", proto: tcp, interface: lo, direction: "in", comment: "kk-logs: loopback only" }

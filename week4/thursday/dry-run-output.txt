@@ -1,0 +1,150 @@
+
+PLAY [Configure KijaniKiosk servers] *******************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [api-staging]
+ok: [payments-staging]
+ok: [logs-staging]
+
+TASK [Update apt cache] ********************************************************
+changed: [payments-staging]
+changed: [logs-staging]
+changed: [api-staging]
+
+TASK [Install required packages] ***********************************************
+changed: [logs-staging]
+changed: [payments-staging]
+changed: [api-staging]
+
+TASK [Hold nginx at current version] *******************************************
+skipping: [api-staging]
+skipping: [payments-staging]
+skipping: [logs-staging]
+
+TASK [Create kijanikiosk system group] *****************************************
+changed: [payments-staging]
+changed: [api-staging]
+changed: [logs-staging]
+
+TASK [Create service account] **************************************************
+changed: [logs-staging]
+changed: [payments-staging]
+changed: [api-staging]
+
+TASK [Create application directory tree] ***************************************
+[WARNING]: failed to look up group kijanikiosk. Create group up to this point in real play
+[WARNING]: failed to look up user kk-api. Create user up to this point in real play
+changed: [logs-staging] => (item={'path': '/opt/kijanikiosk', 'owner': 'root', 'mode': '0750'})
+changed: [payments-staging] => (item={'path': '/opt/kijanikiosk', 'owner': 'root', 'mode': '0750'})
+changed: [api-staging] => (item={'path': '/opt/kijanikiosk', 'owner': 'root', 'mode': '0750'})
+changed: [logs-staging] => (item={'path': '/opt/kijanikiosk/config', 'owner': 'root', 'mode': '0750'})
+changed: [api-staging] => (item={'path': '/opt/kijanikiosk/config', 'owner': 'root', 'mode': '0750'})
+changed: [payments-staging] => (item={'path': '/opt/kijanikiosk/config', 'owner': 'root', 'mode': '0750'})
+changed: [payments-staging] => (item={'path': '/opt/kijanikiosk/shared/logs', 'owner': 'kk-api', 'mode': '2750'})
+changed: [logs-staging] => (item={'path': '/opt/kijanikiosk/shared/logs', 'owner': 'kk-api', 'mode': '2750'})
+changed: [api-staging] => (item={'path': '/opt/kijanikiosk/shared/logs', 'owner': 'kk-api', 'mode': '2750'})
+changed: [logs-staging] => (item={'path': '/opt/kijanikiosk/health', 'owner': 'root', 'mode': '0750'})
+changed: [payments-staging] => (item={'path': '/opt/kijanikiosk/health', 'owner': 'root', 'mode': '0750'})
+changed: [api-staging] => (item={'path': '/opt/kijanikiosk/health', 'owner': 'root', 'mode': '0750'})
+
+TASK [Set extended ACLs on shared log directory] *******************************
+skipping: [api-staging] => (item={'user': 'kk-api', 'perms': 'rwx'}) 
+skipping: [api-staging] => (item={'user': 'kk-payments', 'perms': 'r-x'}) 
+skipping: [payments-staging] => (item={'user': 'kk-api', 'perms': 'rwx'}) 
+skipping: [api-staging] => (item={'user': 'kk-logs', 'perms': 'rwx'}) 
+skipping: [payments-staging] => (item={'user': 'kk-payments', 'perms': 'r-x'}) 
+skipping: [payments-staging] => (item={'user': 'kk-logs', 'perms': 'rwx'}) 
+skipping: [api-staging] => (item={'user': 'kk-api', 'perms': 'rwx', 'default': True}) 
+skipping: [payments-staging] => (item={'user': 'kk-api', 'perms': 'rwx', 'default': True}) 
+skipping: [api-staging] => (item={'user': 'kk-payments', 'perms': 'r-x', 'default': True}) 
+skipping: [payments-staging] => (item={'user': 'kk-payments', 'perms': 'r-x', 'default': True}) 
+skipping: [api-staging] => (item={'user': 'kk-logs', 'perms': 'rwx', 'default': True}) 
+skipping: [logs-staging] => (item={'user': 'kk-api', 'perms': 'rwx'}) 
+skipping: [payments-staging] => (item={'user': 'kk-logs', 'perms': 'rwx', 'default': True}) 
+skipping: [api-staging]
+skipping: [payments-staging]
+skipping: [logs-staging] => (item={'user': 'kk-payments', 'perms': 'r-x'}) 
+skipping: [logs-staging] => (item={'user': 'kk-logs', 'perms': 'rwx'}) 
+skipping: [logs-staging] => (item={'user': 'kk-api', 'perms': 'rwx', 'default': True}) 
+skipping: [logs-staging] => (item={'user': 'kk-payments', 'perms': 'r-x', 'default': True}) 
+skipping: [logs-staging] => (item={'user': 'kk-logs', 'perms': 'rwx', 'default': True}) 
+skipping: [logs-staging]
+
+TASK [Create service environment file] *****************************************
+[WARNING]: failed to look up user kk-payments. Create user up to this point in real play
+[WARNING]: failed to look up user kk-logs. Create user up to this point in real play
+changed: [api-staging]
+changed: [payments-staging]
+changed: [logs-staging]
+
+TASK [Deploy systemd unit file] ************************************************
+changed: [logs-staging]
+changed: [payments-staging]
+changed: [api-staging]
+
+TASK [Enable and start service] ************************************************
+skipping: [api-staging]
+skipping: [payments-staging]
+skipping: [logs-staging]
+
+TASK [Set ufw default deny incoming] *******************************************
+ok: [api-staging]
+ok: [payments-staging]
+ok: [logs-staging]
+
+TASK [Set ufw default allow outgoing] ******************************************
+ok: [api-staging]
+ok: [payments-staging]
+ok: [logs-staging]
+
+TASK [Apply host firewall rules] ***********************************************
+changed: [logs-staging] => (item={'rule': 'allow', 'port': '22', 'proto': 'tcp', 'comment': 'SSH: remote administration'})
+changed: [payments-staging] => (item={'rule': 'allow', 'port': '22', 'proto': 'tcp', 'comment': 'SSH: remote administration'})
+changed: [api-staging] => (item={'rule': 'allow', 'port': '22', 'proto': 'tcp', 'comment': 'SSH: remote administration'})
+changed: [logs-staging] => (item={'rule': 'allow', 'port': 5000, 'proto': 'tcp', 'interface': 'lo', 'direction': 'in', 'comment': 'kk-logs: loopback only'})
+changed: [payments-staging] => (item={'rule': 'allow', 'port': 3001, 'proto': 'tcp', 'interface': 'lo', 'direction': 'in', 'comment': 'kk-payments: loopback only, nginx proxy target'})
+changed: [api-staging] => (item={'rule': 'allow', 'port': '80', 'proto': 'tcp', 'comment': 'HTTP: nginx ingress for kk-api reverse proxy'})
+changed: [payments-staging] => (item={'rule': 'allow', 'port': 3001, 'proto': 'tcp', 'from_ip': '10.0.1.0/24', 'comment': 'kk-payments: health endpoint, monitoring subnet only'})
+changed: [api-staging] => (item={'rule': 'allow', 'port': 3000, 'proto': 'tcp', 'interface': 'lo', 'direction': 'in', 'comment': 'kk-api: loopback only, nginx proxy target'})
+changed: [payments-staging] => (item={'rule': 'deny', 'port': 3001, 'proto': 'tcp', 'comment': 'kk-payments: block all external access (internal service port)'})
+
+TASK [Create journald config override directory] *******************************
+changed: [payments-staging]
+changed: [logs-staging]
+changed: [api-staging]
+
+TASK [Create persistent journal directory] *************************************
+changed: [api-staging]
+changed: [payments-staging]
+changed: [logs-staging]
+
+TASK [Deploy journald persistence config] **************************************
+changed: [api-staging]
+changed: [payments-staging]
+changed: [logs-staging]
+
+TASK [Deploy logrotate configuration] ******************************************
+changed: [api-staging]
+changed: [payments-staging]
+changed: [logs-staging]
+
+RUNNING HANDLER [Reload systemd] ***********************************************
+ok: [api-staging]
+ok: [logs-staging]
+ok: [payments-staging]
+
+RUNNING HANDLER [Restart service] **********************************************
+skipping: [api-staging]
+skipping: [payments-staging]
+skipping: [logs-staging]
+
+RUNNING HANDLER [Restart journald] *********************************************
+changed: [api-staging]
+changed: [payments-staging]
+changed: [logs-staging]
+
+PLAY RECAP *********************************************************************
+api-staging                : ok=17   changed=13   unreachable=0    failed=0    skipped=4    rescued=0    ignored=0   
+logs-staging               : ok=17   changed=13   unreachable=0    failed=0    skipped=4    rescued=0    ignored=0   
+payments-staging           : ok=17   changed=13   unreachable=0    failed=0    skipped=4    rescued=0    ignored=0   
+
