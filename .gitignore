@@ -1,0 +1,7 @@
+.vagrant/
+minio-data/
+*.tfstate
+*.tfstate.backup
+.terraform/
+*.tfvars
+*.tfplan
