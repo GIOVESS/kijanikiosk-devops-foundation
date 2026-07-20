@@ -1,31 +1,27 @@
-# Fault Injection Log — kk-payments-ci (Friday, 6-stage pipeline)
+# Fault Injection Log — kk-payments-ci (6-stage production pipeline)
 
 Five faults injected, one at a time, each observed then reverted before the
-next. Raw logs for each are in `fault-injection-lint.txt`,
-`fault-injection-build.txt`, `fault-injection-test.txt`,
-`fault-injection-archive.txt`, `fault-injection-publish.txt`.
+next. Raw logs in `fault-injection-lint.txt`, `fault-injection-build.txt`,
+`fault-injection-test.txt`, `fault-injection-archive.txt`,
+`fault-injection-publish.txt`.
 
-| Stage faulted | Fault introduced | Expected behaviour | Observed? |
+| Stage faulted | Fault introduced | Observed behaviour | Design rationale |
 |---|---|---|---|
-| Lint | Added unused variable to `index.js` | Build, Verify, Archive, Publish all skip | **Y** — real `no-unused-vars` ESLint error; everything downstream skipped; `post.changed` fired (green→red) |
-| Build | Added nonexistent dependency to `package.json`, mismatched with lockfile | Verify, Archive, Publish all skip | **Y** — but landed in the **Lint** stage, since `npm ci` now runs there, not Build (structural consequence of adding Lint as the first stage — documented in the fault log) |
-| Test (in Verify, parallel) | Deliberate failing assertion | Security Audit runs to completion; Archive, Publish skip | **Y** — Test failed (1/6), Security Audit completed independently in the same run (`AUDIT_EXIT=0`), confirming no `failFast`; Archive and Publish skipped |
-| Archive | Artifact pattern changed to a nonexistent directory | Publish skips; artifact never produced | **Y** — Lint, Build, and both Verify branches all succeeded; Archive was the sole failure point; Jenkins even suggested the likely correct pattern in its own error message |
-| Publish | Wrong `credentialsId` | Archive ran; artifact in Jenkins but not in Nexus | **Y** — Lint, Build, Verify, and Archive all succeeded with fingerprinting; Publish failed at credential resolution before any Nexus network call |
+| Lint | Unused variable added to `index.js` | Real ESLint `no-unused-vars` error; Build, Verify, Archive, Publish all skipped; `post.changed` fired green→red | Style and correctness are the cheapest problems to catch, so they must fail before any dependency installation or network activity happens downstream |
+| Build | Nonexistent dependency added to `package.json`, mismatched with lockfile | `npm ci` failed with `E404` — surfaced in the **Lint** stage specifically, since `npm ci` now runs there; everything downstream skipped | Every later stage depends on a resolved dependency tree existing at all; no verification, packaging, or publish step can produce a meaningful result without one |
+| Test (parallel, in Verify) | Deliberate failing assertion | Test failed (1/6); Security Audit completed independently in the same run (`exit 0`, clean); Archive and Publish skipped | Parallel branches must be genuinely independent — letting Security Audit finish even when Test fails gives a developer both diagnostic results in one run instead of a truncated one |
+| Archive | Artifact pattern pointed at a nonexistent directory | Lint, Build, and both Verify branches all succeeded; Archive itself was the sole failure; Publish skipped | An artifact that can't be archived should never reach the registry — Archive is the last verification gate before anything leaves the Jenkins workspace |
+| Publish | Wrong `credentialsId` | Lint, Build, Verify, and Archive all succeeded with fingerprinting; Publish failed at credential resolution before any Nexus network call | A missing or wrong credential ID is a configuration error and must fail loudly and immediately, not retry silently or partially authenticate |
 
 ## Cross-cutting observations
 
-- **`post.changed` fired correctly on every single transition** — green→red for
-  each of the five faults, and red→green for each of the five reverts (10
-  transitions total, all captured in individual build logs #39–48).
-- **A structural surprise**: "faulting the Build stage" in the brief's sense
-  (breaking `npm ci`) now surfaces in the Lint stage, because Lint became the
-  pipeline's first stage and absorbed the `npm ci` step. This is exactly the
-  kind of thing fault injection is meant to catch — a design change elsewhere
-  in the pipeline silently moved where a known failure mode actually
-  manifests, and only re-running the fault confirmed it.
-- Every fault was introduced and reverted in its own isolated commit; no two
-  faults were ever combined, per Osei's rule.
-- SCM polling fired at least one build automatically mid-sequence (build #46,
-  "Started by an SCM change"), confirming the trigger still works after a
-  full week of pipeline changes.
+- `post.changed` fired correctly on all 10 transitions this produced (5 faults
+  × green→red and red→green), confirming it was never actually verified
+  before this exercise despite being present in the Jenkinsfile since
+  Wednesday.
+- The Build fault relocating into Lint (row 2) is a genuine structural
+  finding: adding Lint as the pipeline's first stage silently moved where
+  `npm ci` — and therefore dependency-resolution failures — actually
+  surfaces. Only caught by re-running the identical fault from Thursday.
+- Every fault was introduced and reverted in its own isolated commit; none
+  were combined.
