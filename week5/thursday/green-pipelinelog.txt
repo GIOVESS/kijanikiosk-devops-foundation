@@ -1,0 +1,51 @@
+Started by user Giovanni Bwayo
+Checking out Revision 57fab071dfce2bdc91bc73165ac3ee8420204a79 (refs/remotes/origin/feature/week5-thursday-docker-agent)
+Commit message: "fix: use env.GIT_COMMIT instead of git CLI (missing in node:18-alpine)"
+
+[Pipeline] withDockerContainer
+Jenkins seems to be running inside container cce93c88bba2fc136b801487780141ff466097056cfe6233d7be621fa890a183
+$ docker run -t -d -u 1000:1000 --network kk-ci-net -w /var/jenkins_home/workspace/kk-payments-ci --volumes-from cce93c88bba2fc136b801487780141ff466097056cfe6233d7be621fa890a183 [env masked] node:18-alpine cat
+
+[Pipeline] stage
+[Pipeline] { (Build)
++ npm ci
+npm warn EBADENGINE Unsupported engine { package: 'jest-junit@17.0.0', required: { node: '>=20.0.0' }, current: { node: 'v18.20.8', npm: '10.8.2' } }
+added 271 packages, and audited 272 packages in 6s
++ npm run build
+Build output: 2 files in dist/
+
+[Pipeline] stage
+[Pipeline] { (Test)
++ npm test -- --ci --reporters=default --reporters=jest-junit
+PASS ./index.test.js
+Tests: 5 passed, 5 total
+
+[Pipeline] stage
+[Pipeline] { (Archive)
+Archiving artifacts
+Recording fingerprints
+
+[Pipeline] stage
+[Pipeline] { (Publish)
+[Pipeline] withCredentials
+Masking supported pattern matches of $NEXUS_PASS
++ npm version 0.1.0-57fab07 --no-git-tag-version --allow-same-version
+v0.1.0-57fab07
++ npm publish --registry http://nexus:8081/repository/npm-kijanikiosk/
+npm notice package: kk-payments-stub@0.1.0-57fab07
+npm notice Publishing to http://nexus:8081/repository/npm-kijanikiosk/ with tag latest and default access
++ kk-payments-stub@0.1.0-57fab07
++ rm -f .npmrc
+
+Published kk-payments-stub version 0.1.0-57fab07 to Nexus
+Artifact URL: http://nexus:8081/repository/npm-kijanikiosk/kk-payments-stub/-/kk-payments-stub-0.1.0-57fab07.tgz
+
+$ docker stop --time=1 bb1fe53046b434adab1aad45e82db905e0fac86a7bf883b13533748eef5b1b3a
+$ docker rm -f --volumes bb1fe53046b434adab1aad45e82db905e0fac86a7bf883b13533748eef5b1b3a
+
+Finished: SUCCESS
+
+Note: EBADENGINE warning confirms real version isolation — jest-junit expects
+Node 20+, pipeline runs Node 18 as declared, warning surfaces but doesn't block
+the build. This is the exact "developer runs 20 locally, VM has 18" scenario
+Wednesday flagged as Thursday's problem to solve.

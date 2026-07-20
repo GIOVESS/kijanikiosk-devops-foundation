@@ -36,11 +36,6 @@ pipeline {
                 }
             }
         }
-        stage('Verify Nexus Reachable') {
-            steps {
-                sh 'wget -q -O- http://nexus:8081/service/rest/v1/status || echo "FAILED TO REACH NEXUS"'
-            }
-        }
         stage('Test') {
             steps {
                 dir("${SERVICE_DIR}") {
