@@ -36,19 +36,30 @@ pipeline {
                 }
             }
         }
-        stage('Test') {
-            steps {
-                dir("${SERVICE_DIR}") {
-                    sh '''
-                        set -e
-                        npm test -- --ci --reporters=default --reporters=jest-junit
-                    '''
+        stage('Verify') {
+            parallel {
+                stage('Test') {
+                    steps {
+                        dir("${SERVICE_DIR}") {
+                            sh '''
+                                set -e
+                                npm test -- --ci --reporters=default --reporters=jest-junit
+                            '''
+                        }
+                    }
+                    post {
+                        always {
+                            dir("${SERVICE_DIR}") {
+                                junit allowEmptyResults: true, testResults: 'junit.xml'
+                            }
+                        }
+                    }
                 }
-            }
-            post {
-                always {
-                    dir("${SERVICE_DIR}") {
-                        junit allowEmptyResults: true, testResults: 'junit.xml'
+                stage('Security Audit') {
+                    steps {
+                        dir("${SERVICE_DIR}") {
+                            sh 'npm audit --audit-level=high'
+                        }
                     }
                 }
             }
