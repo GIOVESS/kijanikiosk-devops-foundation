@@ -1,0 +1,36 @@
+Started by user Giovanni Bwayo
+Obtained services/kk-payments-stub/Jenkinsfile from git https://github.com/GIOVESS/kijanikiosk-devops-foundation.git
+[Pipeline] Start of Pipeline
+[Pipeline] node
+Running on Jenkins
+ in /var/jenkins_home/workspace/kk-payments-ci
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Declarative: Checkout SCM)
+[Pipeline] checkout
+Checking out Revision b71165006a33c4e7106954e5072fe91027989313 (refs/remotes/origin/feature/week5-monday-jenkins-ci)
+Commit message: "test: deliberate fault to verify exit 127 propagation"
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Environment Check)
+[Pipeline] sh
++ node --version
+v20.19.2
+[Pipeline] sh
++ npm --version
+9.2.0
+[Pipeline] sh
++ this-command-does-not-exist
+/var/jenkins_home/workspace/kk-payments-ci@tmp/durable-5746ed82/script.sh.copy: 1: this-command-does-not-exist: not found
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // node
+[Pipeline] End of Pipeline
+ERROR: script returned exit code 127
+Finished: FAILURE
