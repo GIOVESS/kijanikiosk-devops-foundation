@@ -87,7 +87,7 @@ pipeline {
         stage('Archive') {
             steps {
                 dir("${SERVICE_DIR}") {
-                    archiveArtifacts artifacts: "${BUILD_DIR}/**", fingerprint: true, onlyIfSuccessful: true
+                    archiveArtifacts artifacts: "nonexistent-dir/**", fingerprint: true, onlyIfSuccessful: true
                 }
             }
         }
