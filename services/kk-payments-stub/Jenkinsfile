@@ -1,11 +1,31 @@
 pipeline {
     agent any
 
+    environment {
+        APP_NAME = 'kk-payments-stub'
+        BUILD_DIR = 'dist'
+    }
+
+    options {
+        timeout(time: 15, unit: 'MINUTES')
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        disableConcurrentBuilds()
+    }
+
     stages {
-        stage('Environment Check') {
+        stage('Build') {
             steps {
-                sh 'node --version'
-                sh 'npm --version'
+                echo 'TODO: build'
+            }
+        }
+        stage('Test') {
+            steps {
+                echo 'TODO: test'
+            }
+        }
+        stage('Archive') {
+            steps {
+                echo 'TODO: archive'
             }
         }
     }
