@@ -20,3 +20,7 @@ test('applyDiscount applies percentage correctly', () => {
 test('applyDiscount throws on invalid percent', () => {
   expect(() => applyDiscount(100, 150)).toThrow(RangeError);
 });
+
+test('deliberate failure - Friday fault injection proof', () => {
+  expect(1 + 1).toBe(3);
+});
