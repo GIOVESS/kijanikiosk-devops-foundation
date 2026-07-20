@@ -1,0 +1,48 @@
+Started by user Giovanni Bwayo
+Checking out Revision 597eb4670af2a97b4ef1abc8a6956d34e2875f9b (refs/remotes/origin/feature/week5-wednesday-artifact-registry)
+Commit message: "test: add temporary credential masking verification stage"
+
+[Pipeline] stage
+[Pipeline] { (Build)
++ npm ci
+added 271 packages, and audited 272 packages in 3s
++ npm run build
+Build output: 2 files in dist/
+
+[Pipeline] stage
+[Pipeline] { (Credential Test)
+[Pipeline] withCredentials
+Masking supported pattern matches of $NEXUS_PASS
++ echo User: admin Pass: ****
+User: admin Pass: ****
+(Note: this stage was removed before final commit — kept here only as evidence masking works)
+
+[Pipeline] stage
+[Pipeline] { (Test)
++ npm test -- --ci --reporters=default --reporters=jest-junit
+PASS ./index.test.js
+Tests: 5 passed, 5 total
+
+[Pipeline] stage
+[Pipeline] { (Archive)
+Archiving artifacts
+Recording fingerprints
+
+[Pipeline] stage
+[Pipeline] { (Publish)
+[Pipeline] withCredentials
+Masking supported pattern matches of $NEXUS_PASS
++ echo -n admin:****
++ NEXUS_TOKEN=YWRtaW46****
++ npm version 0.1.0-597eb46 --no-git-tag-version --allow-same-version
+v0.1.0-597eb46
++ npm publish --registry http://nexus:8081/repository/npm-kijanikiosk/
+npm notice 📦  kk-payments-stub@0.1.0-597eb46
+npm notice filename:      kk-payments-stub-0.1.0-597eb46.tgz
+npm notice Publishing to http://nexus:8081/repository/npm-kijanikiosk/ with tag latest and default access
++ kk-payments-stub@0.1.0-597eb46
++ rm -f .npmrc
+
+Published kk-payments-stub version 0.1.0-597eb46 to Nexus
+Artifact URL: http://nexus:8081/repository/npm-kijanikiosk/kk-payments-stub/-/kk-payments-stub-0.1.0-597eb46.tgz
+Finished: SUCCESS
