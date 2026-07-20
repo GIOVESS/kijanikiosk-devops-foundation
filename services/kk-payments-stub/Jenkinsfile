@@ -1,11 +1,54 @@
 pipeline {
     agent any
 
+    environment {
+        APP_NAME = 'kk-payments-stub'
+        BUILD_DIR = 'dist'
+        SERVICE_DIR = 'services/kk-payments-stub'
+    }
+
+    options {
+        timeout(time: 15, unit: 'MINUTES')
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        disableConcurrentBuilds()
+    }
+
     stages {
-        stage('Environment Check') {
+        stage('Build') {
             steps {
-                sh 'node --version'
-                sh 'npm --version'
+                dir("${SERVICE_DIR}") {
+                    sh 'npm ci'
+                    sh 'npm run build'
+                    sh '''
+                        set -e
+                        test -d "${BUILD_DIR}" || { echo "ERROR: build directory not found"; exit 1; }
+                        echo "Build output: $(ls ${BUILD_DIR} | wc -l) files in ${BUILD_DIR}/"
+                    '''
+                }
+            }
+        }
+        stage('Test') {
+            steps {
+                dir("${SERVICE_DIR}") {
+                    sh '''
+                        set -e
+                        npm test -- --ci --reporters=default --reporters=jest-junit
+                    '''
+                }
+            }
+            post {
+                always {
+                    dir("${SERVICE_DIR}") {
+                        junit allowEmptyResults: true, testResults: 'junit.xml'
+                    }
+                }
+            }
+        }
+        stage('Archive') {
+            steps {
+                dir("${SERVICE_DIR}") {
+                    archiveArtifacts artifacts: "${BUILD_DIR}/**", fingerprint: true, onlyIfSuccessful: true
+                }
             }
         }
     }

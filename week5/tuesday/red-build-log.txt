@@ -1,0 +1,37 @@
+Started by an SCM change
+Checking out Revision 6df049d3832047c765f7872f51d73a14318b270a (refs/remotes/origin/feature/week5-tuesday-declarative-pipeline)
+Commit message: "test: deliberate failure to verify CI pipeline stops on failure"
+[Pipeline] stage
+[Pipeline] { (Build)
++ npm ci
+added 271 packages, and audited 272 packages in 4s
++ npm run build
++ echo Build output: 2 files in dist/
+Build output: 2 files in dist/
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Test)
++ npm test -- --ci --reporters=default --reporters=jest-junit
+FAIL ./index.test.js
+  ✓ calculateTotal sums item amounts correctly (3 ms)
+  ✓ calculateTotal returns 0 for empty array
+  ✓ calculateTotal throws on invalid amount (14 ms)
+  ✓ applyDiscount applies percentage correctly
+  ✓ applyDiscount throws on invalid percent
+  ✕ deliberate failure - CI pipeline proof (3 ms)
+
+  ● deliberate failure - CI pipeline proof
+    expect(received).toBe(expected)
+    Expected: 3
+    Received: 2
+    at Object.toBe (index.test.js:25:17)
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 5 passed, 6 total
+[Pipeline] junit
+Recording test results
+[Pipeline] stage
+[Pipeline] { (Archive)
+Stage "Archive" skipped due to earlier failure(s)
+ERROR: script returned exit code 1
+Finished: FAILURE
