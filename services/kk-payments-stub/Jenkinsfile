@@ -12,7 +12,7 @@ pipeline {
         SERVICE_DIR  = 'services/kk-payments-stub'
         NEXUS_URL    = 'http://nexus:8081/repository/npm-kijanikiosk/'
         PKG_VERSION  = sh(script: "node -p \"require('./${SERVICE_DIR}/package.json').version\"", returnStdout: true).trim()
-        GIT_SHORT    = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+        GIT_SHORT    = "${env.GIT_COMMIT.take(7)}"
         ARTIFACT_VERSION = "${PKG_VERSION}-${GIT_SHORT}"
     }
 
