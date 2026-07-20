@@ -1,0 +1,49 @@
+Commit: 95a42eac667e8ae3ded0e07891daf6eb79024323
+Fault: changed credentialsId from 'nexus-credentials' to 'wrong-credential-id'
+       in the Publish stage's withCredentials block
+
+[Pipeline] stage
+[Pipeline] { (Build)
++ npm ci
+Build output: 2 files in dist/
+
+[Pipeline] stage
+[Pipeline] { (Verify)
+[Pipeline] parallel
++ npm test -- --ci --reporters=default --reporters=jest-junit
++ npm audit --audit-level=high
+PASS ./index.test.js
+Tests: 5 passed, 5 total
+found 0 vulnerabilities
+
+[Pipeline] stage
+[Pipeline] { (Archive)
+Archiving artifacts
+Recording fingerprints
+
+[Pipeline] stage
+[Pipeline] { (Publish)
+[Pipeline] withCredentials
+[Pipeline] // withCredentials
+
+[Pipeline] cleanWs
+[WS-CLEANUP] done
+
+Pipeline FAILED at build 31
+ERROR: Could not find credentials entry with ID 'wrong-credential-id'
+Finished: FAILURE
+
+Observed behaviour: Build, Test, Security Audit, and Archive all completed
+successfully — the artifact was built, tested, audited clean, and
+fingerprinted in Jenkins. Publish failed immediately at credential resolution,
+before any network call to Nexus was attempted (withCredentials block opened
+and closed with no sh output at all). This confirms the artifact exists in
+Jenkins (visible under "Last Successful Artifacts" from the Archive stage of
+this build) but never reached Nexus — the exact "in Jenkins but not in Nexus"
+distinction fault injection is meant to demonstrate.
+
+Scope note: no separate Lint stage exists in this pipeline (unlike the brief's
+5-fault table which includes a Lint fault), since Build's fail-fast position
+already covers syntax/dependency errors for this minimal service. This is
+a deliberate scope decision, not an oversight — documented here rather than
+adding an artificial Lint stage solely to complete the table.

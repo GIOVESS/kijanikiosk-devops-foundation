@@ -1,0 +1,33 @@
+Started by user Giovanni Bwayo
+Checking out Revision de166906fd975adfc6b87034ce64f898aa1a3ecf (refs/remotes/origin/feature/week5-thursday-docker-agent)
+Commit message: "ci: replace agent any with pinned Docker agent (node:18-alpine)"
+
+[Pipeline] sh
++ docker inspect -f . node:18-alpine
+Error: No such object: node:18-alpine
+[Pipeline] sh
++ docker pull node:18-alpine
+18-alpine: Pulling from library/node
+Status: Downloaded newer image for node:18-alpine
+
+[Pipeline] withDockerContainer
+Jenkins seems to be running inside container cce93c88bba2fc136b801487780141ff466097056cfe6233d7be621fa890a183
+$ docker run -t -d -u 1000:1000 --network kk-ci-net -w /var/jenkins_home/workspace/kk-payments-ci --volumes-from cce93c88bba2fc136b801487780141ff466097056cfe6233d7be621fa890a183 [env vars masked] node:18-alpine cat
+
+[Pipeline] stage
+[Pipeline] { (Environment Check)
+[Pipeline] sh
++ node --version
+v18.20.8
+[Pipeline] sh
++ npm --version
+10.8.2
+
+$ docker stop --time=1 02eae06b12e7ab03a1bc2ff104f161601b5b96af06f0b28d95ea62c05c31ab50
+$ docker rm -f --volumes 02eae06b12e7ab03a1bc2ff104f161601b5b96af06f0b28d95ea62c05c31ab50
+
+Finished: SUCCESS
+
+Note: v18.20.8 confirms isolation from jenkins-local's own Node (v20.19.2,
+installed via apt for Mon-Wed's agent-any stages). The Docker agent is
+completely independent of whatever is on the Jenkins container itself.

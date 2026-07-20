@@ -1,5 +1,10 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'node:18-alpine'
+            args '--network kk-ci-net'
+        }
+    }
 
     environment {
         APP_NAME     = 'kk-payments-stub'
@@ -7,7 +12,7 @@ pipeline {
         SERVICE_DIR  = 'services/kk-payments-stub'
         NEXUS_URL    = 'http://nexus:8081/repository/npm-kijanikiosk/'
         PKG_VERSION  = sh(script: "node -p \"require('./${SERVICE_DIR}/package.json').version\"", returnStdout: true).trim()
-        GIT_SHORT    = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+        GIT_SHORT    = "${env.GIT_COMMIT.take(7)}"
         ARTIFACT_VERSION = "${PKG_VERSION}-${GIT_SHORT}"
     }
 
@@ -31,19 +36,43 @@ pipeline {
                 }
             }
         }
-        stage('Test') {
-            steps {
-                dir("${SERVICE_DIR}") {
-                    sh '''
-                        set -e
-                        npm test -- --ci --reporters=default --reporters=jest-junit
-                    '''
+        stage('Verify') {
+            parallel {
+                stage('Test') {
+                    steps {
+                        dir("${SERVICE_DIR}") {
+                            sh '''
+                                set -e
+                                npm test -- --ci --reporters=default --reporters=jest-junit
+                            '''
+                        }
+                    }
+                    post {
+                        always {
+                            dir("${SERVICE_DIR}") {
+                                junit allowEmptyResults: true, testResults: 'junit.xml'
+                            }
+                        }
+                    }
                 }
-            }
-            post {
-                always {
-                    dir("${SERVICE_DIR}") {
-                        junit allowEmptyResults: true, testResults: 'junit.xml'
+                stage('Security Audit') {
+                    steps {
+                        dir("${SERVICE_DIR}") {
+                            sh '''
+                                set +e
+                                npm audit --audit-level=high --json > audit-report.json
+                                AUDIT_EXIT=$?
+                                set -e
+                                exit $AUDIT_EXIT
+                            '''
+                        }
+                    }
+                    post {
+                        always {
+                            dir("${SERVICE_DIR}") {
+                                archiveArtifacts artifacts: 'audit-report.json', allowEmptyArchive: true
+                            }
+                        }
                     }
                 }
             }

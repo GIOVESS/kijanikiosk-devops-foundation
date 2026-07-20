@@ -1,0 +1,5 @@
+audit-report.json
+junit.xml
+Jenkinsfile
+*.test.js
+jest.config.js
