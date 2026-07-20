@@ -1,0 +1,47 @@
+Commit: 4c9558983c9ba0ae0f7caa7f1eb3b47f9b009ac0
+Fault: added deliberate failing assertion to index.test.js
+       (expect(1+1).toBe(3))
+
+[Pipeline] stage
+[Pipeline] { (Lint)
++ node_modules/.bin/eslint index.js index.test.js
+(clean)
+
+[Pipeline] stage
+[Pipeline] { (Build)
++ npm run build
+Build output: 2 files in dist/
+
+[Pipeline] stage
+[Pipeline] { (Verify)
+[Pipeline] parallel
+FAIL ./index.test.js
+  ✕ deliberate failure - Friday fault injection proof (3 ms)
+    Expected: 3
+    Received: 2
+Test Suites: 1 failed, 1 total
+Tests: 1 failed, 5 passed, 6 total
+[Pipeline] junit
+Recording test results
+Failed in branch Test
+AUDIT_EXIT=0
+archiveArtifacts (audit-report.json)
+
+[Pipeline] stage
+[Pipeline] { (Archive)
+Stage "Archive" skipped due to earlier failure(s)
+
+[Pipeline] stage
+[Pipeline] { (Publish)
+Stage "Publish" skipped due to earlier failure(s)
+
+Build status changed to FAILURE - kk-payments-ci #45
+Pipeline FAILED at build 45
+Finished: FAILURE
+
+Observed: Lint and Build both completed cleanly. Test failed with 1/6
+assertions failing, junit results still recorded via post.always. Security
+Audit branch completed fully independently in the same run (audit-report.json
+archived, exit 0), confirming failFast remains unset even with the new Lint
+stage added ahead of Verify. Archive and Publish both correctly skipped.
+post.changed fired on the green->red transition.
