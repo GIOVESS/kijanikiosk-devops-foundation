@@ -4,6 +4,7 @@ pipeline {
     environment {
         APP_NAME = 'kk-payments-stub'
         BUILD_DIR = 'dist'
+        SERVICE_DIR = 'services/kk-payments-stub'
     }
 
     options {
@@ -15,13 +16,15 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                sh 'npm ci'
-                sh 'npm run build'
-                sh '''
-                    set -e
-                    test -d "${BUILD_DIR}" || { echo "ERROR: build directory not found"; exit 1; }
-                    echo "Build output: $(ls ${BUILD_DIR} | wc -l) files in ${BUILD_DIR}/"
-                '''
+                dir("${SERVICE_DIR}") {
+                    sh 'npm ci'
+                    sh 'npm run build'
+                    sh '''
+                        set -e
+                        test -d "${BUILD_DIR}" || { echo "ERROR: build directory not found"; exit 1; }
+                        echo "Build output: $(ls ${BUILD_DIR} | wc -l) files in ${BUILD_DIR}/"
+                    '''
+                }
             }
         }
         stage('Test') {
