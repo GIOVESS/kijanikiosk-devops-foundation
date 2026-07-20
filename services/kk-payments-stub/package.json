@@ -10,7 +10,6 @@
   },
   "devDependencies": {
     "jest": "^29.7.0",
-    "jest-junit": "^17.0.0",
-    "this-package-does-not-exist-anywhere": "^99.99.99"
+    "jest-junit": "^17.0.0"
   }
 }

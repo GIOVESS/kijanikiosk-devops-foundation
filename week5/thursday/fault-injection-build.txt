@@ -1,0 +1,39 @@
+Commit: a01e611d1715a9ead944dc403c7f3e6da2568f3f
+Fault: added "this-package-does-not-exist-anywhere": "^99.99.99" to package.json
+       devDependencies, not present in package-lock.json
+
+[Pipeline] stage
+[Pipeline] { (Build)
++ npm ci
+npm error code E404
+npm error 404 Not Found - GET https://registry.npmjs.org/this-package-does-not-exist-anywhere - Not found
+npm error 404 'this-package-does-not-exist-anywhere@^99.99.99' is not in this registry.
+
+[Pipeline] stage
+[Pipeline] { (Verify)
+Stage "Verify" skipped due to earlier failure(s)
+[Pipeline] { (Branch: Test)
+Stage "Test" skipped due to earlier failure(s)
+[Pipeline] { (Branch: Security Audit)
+Stage "Security Audit" skipped due to earlier failure(s)
+Failed in branch Test
+Failed in branch Security Audit
+
+[Pipeline] stage
+[Pipeline] { (Archive)
+Stage "Archive" skipped due to earlier failure(s)
+
+[Pipeline] stage
+[Pipeline] { (Publish)
+Stage "Publish" skipped due to earlier failure(s)
+
+[Pipeline] cleanWs
+[WS-CLEANUP] Deleting project workspace... done
+
+Pipeline FAILED at build 27
+ERROR: script returned exit code 1
+Finished: FAILURE
+
+Observed behaviour: Build red -> both Verify branches (Test, Security Audit)
+individually report skipped -> Archive skipped -> Publish skipped -> post.always
+cleanWs still executed. Matches expected fail-fast sequential behaviour.
