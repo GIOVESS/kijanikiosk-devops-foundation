@@ -20,3 +20,7 @@ test('applyDiscount applies percentage correctly', () => {
 test('applyDiscount throws on invalid percent', () => {
   expect(() => applyDiscount(100, 150)).toThrow(RangeError);
 });
+
+test('deliberate failure - CI pipeline proof', () => {
+  expect(1 + 1).toBe(3);
+});
