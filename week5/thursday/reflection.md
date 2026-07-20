@@ -101,3 +101,20 @@ and periodic re-scanning after advisories are eventually filed — none of
 which belongs inside the CI pipeline itself, because CI runs at commit time
 against a database that is necessarily incomplete for anything not yet
 publicly known.
+
+## Addendum: A Third Category, Found by Accident
+
+While implementing the Principle 4 improvement today, the pipeline itself
+surfaced a third category the questions above didn't anticipate: **the CI
+tooling leaking into the artifact it produces**. Archiving `npm audit`'s JSON
+output caused `audit-report.json` to be included inside the published npm
+tarball, because nothing excluded it. This isn't a logic error and it isn't a
+supply-chain compromise — it's the build process contaminating its own output
+with files that only exist for the pipeline's benefit (`Jenkinsfile`,
+`*.test.js`, `jest.config.js` were all shipping too, unnoticed since Monday,
+until a file literally named "audit" made it visible). A green pipeline
+proves the code works and passes its checks; it says nothing about whether
+the artifact itself is *clean* of the process that built it. This is caught
+by `.npmignore` discipline and periodic `npm pack --dry-run` review — again,
+not something CI enforces on its own, since CI has no concept of "should this
+file be in the package," only "did the commands I ran succeed."
