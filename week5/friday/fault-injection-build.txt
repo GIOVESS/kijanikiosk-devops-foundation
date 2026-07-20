@@ -1,0 +1,41 @@
+Commit: 5ec1ac90ca5a4a3e648f41c8e26738498ea77ecc
+Fault: added "this-package-does-not-exist-anywhere": "^99.99.99" to
+       package.json devDependencies, mismatched with package-lock.json
+
+[Pipeline] stage
+[Pipeline] { (Lint)
++ npm ci
+npm error code E404
+npm error 404 Not Found - GET https://registry.npmjs.org/this-package-does-not-exist-anywhere
+npm error 404 'this-package-does-not-exist-anywhere@^99.99.99' is not in this registry.
+
+[Pipeline] stage
+[Pipeline] { (Build)
+Stage "Build" skipped due to earlier failure(s)
+
+[Pipeline] stage
+[Pipeline] { (Verify)
+Stage "Verify" skipped due to earlier failure(s)
+Stage "Test" skipped due to earlier failure(s)
+Stage "Security Audit" skipped due to earlier failure(s)
+
+[Pipeline] stage
+[Pipeline] { (Archive)
+Stage "Archive" skipped due to earlier failure(s)
+
+[Pipeline] stage
+[Pipeline] { (Publish)
+Stage "Publish" skipped due to earlier failure(s)
+
+Build status changed to FAILURE - kk-payments-ci #43
+Pipeline FAILED at build 43
+Finished: FAILURE
+
+Observed: this fault landed in the LINT stage, not Build, because npm ci
+moved to Lint when it was added as the pipeline's first stage today (Lint
+now needs node_modules present to run eslint). This is a genuine structural
+consequence worth documenting: "the Build fault" is really "the dependency
+resolution fault" -- it surfaces wherever npm ci actually runs, which shifted
+when the pipeline grew a new first stage. Same downstream cascade as
+Thursday's equivalent fault (everything skips), just attributed to a
+different stage name. post.changed correctly fired.
