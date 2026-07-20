@@ -23,3 +23,6 @@ function applyDiscount(total, percent) {
 }
 
 module.exports = { calculateTotal, applyDiscount };
+
+// deliberate lint fault
+const unusedVariable = 42;
