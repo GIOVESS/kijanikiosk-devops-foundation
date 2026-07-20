@@ -1,0 +1,46 @@
+Started by user Giovanni Bwayo
+Checking out Revision a895fdf27aca4cebddabf17ac29893587eed1dad (refs/remotes/origin/feature/week5-wednesday-artifact-registry)
+Commit message: "ci: remove credential test stage, save publish build log evidence"
+
+[Pipeline] stage
+[Pipeline] { (Build)
++ npm ci
+added 271 packages, and audited 272 packages in 3s
++ npm run build
+Build output: 2 files in dist/
+
+[Pipeline] stage
+[Pipeline] { (Test)
++ npm test -- --ci --reporters=default --reporters=jest-junit
+PASS ./index.test.js
+  ✓ calculateTotal sums item amounts correctly (5 ms)
+  ✓ calculateTotal returns 0 for empty array (1 ms)
+  ✓ calculateTotal throws on invalid amount (12 ms)
+  ✓ applyDiscount applies percentage correctly
+  ✓ applyDiscount throws on invalid percent (2 ms)
+Tests: 5 passed, 5 total
+
+[Pipeline] stage
+[Pipeline] { (Archive)
+Archiving artifacts
+Recording fingerprints
+
+[Pipeline] stage
+[Pipeline] { (Publish)
+[Pipeline] withCredentials
+Masking supported pattern matches of $NEXUS_PASS
++ echo -n admin:****
++ base64
++ NEXUS_TOKEN=YWRtaW46****
++ npm version 0.1.0-a895fdf --no-git-tag-version --allow-same-version
+v0.1.0-a895fdf
++ npm publish --registry http://nexus:8081/repository/npm-kijanikiosk/
+npm notice 📦  kk-payments-stub@0.1.0-a895fdf
+npm notice filename:      kk-payments-stub-0.1.0-a895fdf.tgz
+npm notice Publishing to http://nexus:8081/repository/npm-kijanikiosk/ with tag latest and default access
++ kk-payments-stub@0.1.0-a895fdf
++ rm -f .npmrc
+
+Published kk-payments-stub version 0.1.0-a895fdf to Nexus
+Artifact URL: http://nexus:8081/repository/npm-kijanikiosk/kk-payments-stub/-/kk-payments-stub-0.1.0-a895fdf.tgz
+Finished: SUCCESS
