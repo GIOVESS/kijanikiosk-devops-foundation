@@ -1,6 +1,6 @@
 Started by user Giovanni Bwayo
-Checking out Revision 57fab071dfce2bdc91bc73165ac3ee8420204a79 (refs/remotes/origin/feature/week5-thursday-docker-agent)
-Commit message: "fix: use env.GIT_COMMIT instead of git CLI (missing in node:18-alpine)"
+Checking out Revision f769853c37a2aade62e17a4ed772c6b59d799a91 (refs/remotes/origin/feature/week5-thursday-docker-agent)
+Commit message: "ci: add parallel Verify stage (Test + Security Audit)"
 
 [Pipeline] withDockerContainer
 Jenkins seems to be running inside container cce93c88bba2fc136b801487780141ff466097056cfe6233d7be621fa890a183
@@ -10,15 +10,25 @@ $ docker run -t -d -u 1000:1000 --network kk-ci-net -w /var/jenkins_home/workspa
 [Pipeline] { (Build)
 + npm ci
 npm warn EBADENGINE Unsupported engine { package: 'jest-junit@17.0.0', required: { node: '>=20.0.0' }, current: { node: 'v18.20.8', npm: '10.8.2' } }
-added 271 packages, and audited 272 packages in 6s
+added 271 packages, and audited 272 packages in 7s
 + npm run build
 Build output: 2 files in dist/
 
 [Pipeline] stage
-[Pipeline] { (Test)
+[Pipeline] { (Verify)
+[Pipeline] parallel
+[Pipeline] { (Branch: Test)
+[Pipeline] { (Branch: Security Audit)
+[Pipeline] sh
+[Pipeline] sh
 + npm test -- --ci --reporters=default --reporters=jest-junit
++ npm audit --audit-level=high
+
 PASS ./index.test.js
 Tests: 5 passed, 5 total
+
+found 0 vulnerabilities
+[Pipeline] // parallel
 
 [Pipeline] stage
 [Pipeline] { (Archive)
@@ -29,23 +39,22 @@ Recording fingerprints
 [Pipeline] { (Publish)
 [Pipeline] withCredentials
 Masking supported pattern matches of $NEXUS_PASS
-+ npm version 0.1.0-57fab07 --no-git-tag-version --allow-same-version
-v0.1.0-57fab07
++ npm version 0.1.0-f769853 --no-git-tag-version --allow-same-version
+v0.1.0-f769853
 + npm publish --registry http://nexus:8081/repository/npm-kijanikiosk/
-npm notice package: kk-payments-stub@0.1.0-57fab07
+npm notice package: kk-payments-stub@0.1.0-f769853
 npm notice Publishing to http://nexus:8081/repository/npm-kijanikiosk/ with tag latest and default access
-+ kk-payments-stub@0.1.0-57fab07
++ kk-payments-stub@0.1.0-f769853
 + rm -f .npmrc
 
-Published kk-payments-stub version 0.1.0-57fab07 to Nexus
-Artifact URL: http://nexus:8081/repository/npm-kijanikiosk/kk-payments-stub/-/kk-payments-stub-0.1.0-57fab07.tgz
+Published kk-payments-stub version 0.1.0-f769853 to Nexus
+Artifact URL: http://nexus:8081/repository/npm-kijanikiosk/kk-payments-stub/-/kk-payments-stub-0.1.0-f769853.tgz
 
-$ docker stop --time=1 bb1fe53046b434adab1aad45e82db905e0fac86a7bf883b13533748eef5b1b3a
-$ docker rm -f --volumes bb1fe53046b434adab1aad45e82db905e0fac86a7bf883b13533748eef5b1b3a
-
+$ docker stop --time=1 cdd7a1ee746cb58c11b6650e88eb4d02e98095e4f6146fd0845b3c5183a54eb4
+$ docker rm -f --volumes cdd7a1ee746cb58c11b6650e88eb4d02e98095e4f6146fd0845b3c5183a54eb4
 Finished: SUCCESS
 
-Note: EBADENGINE warning confirms real version isolation — jest-junit expects
-Node 20+, pipeline runs Node 18 as declared, warning surfaces but doesn't block
-the build. This is the exact "developer runs 20 locally, VM has 18" scenario
-Wednesday flagged as Thursday's problem to solve.
+Note: Test and Security Audit branches confirmed running in parallel — both
+entered their sh steps back-to-back in the log (rather than sequentially),
+and their output interleaves ([Pipeline] sh / [Pipeline] sh appear together
+before either stage's output). npm audit clean: 0 vulnerabilities.
