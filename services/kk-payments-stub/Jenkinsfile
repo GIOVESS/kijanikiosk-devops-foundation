@@ -29,7 +29,19 @@ pipeline {
         }
         stage('Test') {
             steps {
-                echo 'TODO: test'
+                dir("${SERVICE_DIR}") {
+                    sh '''
+                        set -e
+                        npm test -- --ci --reporters=default --reporters=jest-junit
+                    '''
+                }
+            }
+            post {
+                always {
+                    dir("${SERVICE_DIR}") {
+                        junit allowEmptyResults: true, testResults: 'junit.xml'
+                    }
+                }
             }
         }
         stage('Archive') {
