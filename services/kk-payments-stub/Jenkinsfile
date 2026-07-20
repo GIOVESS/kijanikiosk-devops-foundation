@@ -58,7 +58,20 @@ pipeline {
                 stage('Security Audit') {
                     steps {
                         dir("${SERVICE_DIR}") {
-                            sh 'npm audit --audit-level=high'
+                            sh '''
+                                set +e
+                                npm audit --audit-level=high --json > audit-report.json
+                                AUDIT_EXIT=$?
+                                set -e
+                                exit $AUDIT_EXIT
+                            '''
+                        }
+                    }
+                    post {
+                        always {
+                            dir("${SERVICE_DIR}") {
+                                archiveArtifacts artifacts: 'audit-report.json', allowEmptyArchive: true
+                            }
                         }
                     }
                 }
