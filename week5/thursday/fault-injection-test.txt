@@ -1,0 +1,51 @@
+Commit: e324c8c705c280ea48e435cb37739108af59c93c
+Fault: added deliberate failing assertion to index.test.js
+       (expect(1+1).toBe(3))
+
+[Pipeline] stage
+[Pipeline] { (Verify)
+[Pipeline] parallel
+[Pipeline] { (Branch: Test)
+[Pipeline] { (Branch: Security Audit)
++ npm test -- --ci --reporters=default --reporters=jest-junit
++ npm audit --audit-level=high
+
+FAIL ./index.test.js
+  ✓ calculateTotal sums item amounts correctly (6 ms)
+  ✓ calculateTotal returns 0 for empty array (1 ms)
+  ✓ calculateTotal throws on invalid amount (7 ms)
+  ✓ applyDiscount applies percentage correctly
+  ✓ applyDiscount throws on invalid percent (2 ms)
+  ✕ deliberate failure - fault injection proof (6 ms)
+
+    Expected: 3
+    Received: 2
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 5 passed, 6 total
+
+[Pipeline] junit
+Recording test results
+Failed in branch Test
+found 0 vulnerabilities
+
+[Pipeline] stage
+[Pipeline] { (Archive)
+Stage "Archive" skipped due to earlier failure(s)
+
+[Pipeline] stage
+[Pipeline] { (Publish)
+Stage "Publish" skipped due to earlier failure(s)
+
+[Pipeline] cleanWs
+[WS-CLEANUP] done
+
+Pipeline FAILED at build 29
+Finished: FAILURE
+
+Observed behaviour: Test branch failed with 1/6 tests failing, but Security
+Audit branch completed independently and successfully (found 0 vulnerabilities)
+in the SAME run, proving failFast is not set on the parallel Verify stage —
+both branches run to completion regardless of a sibling's outcome. junit
+results still recorded via post.always despite the Test branch failing.
+Archive and Publish correctly skipped since the overall Verify stage failed.
