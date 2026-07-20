@@ -29,34 +29,39 @@ host environment variables.
 **PASS** — `cleanWs()` runs in `post.always`, confirmed in every build log
 this week (`[WS-CLEANUP] Deleting project workspace... done`). The `.npmrc`
 credential file is also explicitly deleted via `trap "rm -f .npmrc" EXIT`
-inside the Publish stage itself, before the outer `cleanWs()` even runs —
-belt-and-suspenders cleanup for the one file in the pipeline that actually
-contains sensitive material.
+inside the Publish stage itself, before the outer `cleanWs()` even runs.
 
 ## Principle 4: Make diagnostic output available even on failure
 
-**PARTIAL** — `junit allowEmptyResults: true, testResults: 'junit.xml'` runs
-in `post.always` for the Test branch, so test results are recorded whether
-Test passes or fails. However, the Security Audit branch has no equivalent
-`post.always` — if `npm audit` fails, the console log shows the failure, but
-there's no structured/archived audit report a developer could review later
-without digging through the raw build log. Improvement: pipe `npm audit --json
---audit-level=high > audit-report.json` and archive it via `archiveArtifacts`
-in a `post.always` block for that branch.
+**PASS** (upgraded from PARTIAL) — Both Verify branches now have `post.always`
+blocks: Test records JUnit results via `junit allowEmptyResults: true`, and
+Security Audit runs `npm audit --json > audit-report.json` with a `set +e` /
+capture-exit-code / `set -e` / re-raise pattern so the JSON is always written
+to disk before the stage's real pass/fail status is honored, then archives it
+via `archiveArtifacts allowEmptyArchive: true`.
+
+Implementing this surfaced a real bug, not just a documentation gap: the
+audit report initially got included inside the *published npm package itself*
+(`npm notice 362B audit-report.json` appeared in the Publish stage's tarball
+contents), because nothing told `npm publish` to exclude it. Fixed with a
+`.npmignore` excluding `audit-report.json`, `junit.xml`, `Jenkinsfile`,
+`*.test.js`, and `jest.config.js` — none of which belong in a published
+package. This also retroactively fixed a latent issue present since Monday:
+every prior publish this week had been shipping `Jenkinsfile` and the test
+files inside the tarball too, just unnoticed until a file with "audit" in the
+name made the leak obvious. Confirmed via `npm pack --dry-run` locally and the
+actual Publish stage log: tarball now contains only `dist/index.js`,
+`dist/package.json`, `index.js`, `package.json`.
 
 ## Principle 5: The 10-minute rule
 
-**PASS** — Full pipeline runtime today: roughly 30-45 seconds end to end
-(Build ~7s including npm ci, Verify parallel branches ~1s each, Archive/Publish
-a few seconds). Comfortably under the 10-minute threshold. This is partly a
-function of the payments-stub service being intentionally minimal — a real
-payments service with a larger dependency tree and broader test suite would
-need to be watched carefully as it grows, but there is no reason to add
-non-blocking slow checks (integration tests, full security scans) to this
-pipeline yet, since nothing currently pushes it anywhere near the limit.
+**PASS** — Full pipeline runtime remains roughly 30-45 seconds end to end.
+Comfortably under the 10-minute threshold.
 
 ## Summary
 
-4 of 5 principles fully met. Principle 4 improvement identified (audit report
-archiving) but not yet implemented — candidate for Friday's "one improvement
-implemented and described" requirement.
+All 5 principles now fully met. Principle 4's improvement (audit report
+archiving) was implemented and, in the process of implementing it, surfaced
+and fixed a real artifact-hygiene bug (CI files leaking into the published
+npm package) that had existed unnoticed all week — this is the "one
+improvement implemented and described" deliverable for Friday.
