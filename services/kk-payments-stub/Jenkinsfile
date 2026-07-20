@@ -46,7 +46,9 @@ pipeline {
         }
         stage('Archive') {
             steps {
-                echo 'TODO: archive'
+                dir("${SERVICE_DIR}") {
+                    archiveArtifacts artifacts: "${BUILD_DIR}/**", fingerprint: true, onlyIfSuccessful: true
+                }
             }
         }
     }

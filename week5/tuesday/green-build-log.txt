@@ -1,0 +1,28 @@
+Started by user Giovanni Bwayo
+Checking out Revision 2c9dd0d6fce586c5da617b38a5fcad0bc9fff50d (refs/remotes/origin/feature/week5-tuesday-declarative-pipeline)
+Commit message: "test: revert deliberate failure, save red-build evidence log"
+[Pipeline] stage
+[Pipeline] { (Build)
++ npm ci
+added 271 packages, and audited 272 packages in 3s
++ npm run build
+Build output: 2 files in dist/
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Test)
++ npm test -- --ci --reporters=default --reporters=jest-junit
+PASS ./index.test.js
+  ✓ calculateTotal sums item amounts correctly (4 ms)
+  ✓ calculateTotal returns 0 for empty array (1 ms)
+  ✓ calculateTotal throws on invalid amount (10 ms)
+  ✓ applyDiscount applies percentage correctly (1 ms)
+  ✓ applyDiscount throws on invalid percent (1 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       5 passed, 5 total
+[Pipeline] junit
+Recording test results
+[Pipeline] stage
+[Pipeline] { (Archive)
+TODO: archive
+Finished: SUCCESS
