@@ -1,0 +1,39 @@
+Commit: a74a96d3d9a53d0e8baa20f34b4f7e9e3800875e
+Fault: changed credentialsId from 'nexus-credentials' to 'wrong-credential-id'
+
+[Pipeline] stage
+[Pipeline] { (Lint)
++ node_modules/.bin/eslint index.js index.test.js
+(clean)
+
+[Pipeline] stage
+[Pipeline] { (Build)
+Build output: 2 files in dist/
+
+[Pipeline] stage
+[Pipeline] { (Verify)
+[Pipeline] parallel
+PASS ./index.test.js
+Tests: 5 passed, 5 total
+AUDIT_EXIT=0
+
+[Pipeline] stage
+[Pipeline] { (Archive)
+Archiving artifacts
+Recording fingerprints
+
+[Pipeline] stage
+[Pipeline] { (Publish)
+[Pipeline] withCredentials
+[Pipeline] // withCredentials
+
+Build status changed to FAILURE - kk-payments-ci #47
+Pipeline FAILED at build 47
+ERROR: Could not find credentials entry with ID 'wrong-credential-id'
+Finished: FAILURE
+
+Observed: Lint, Build, both Verify branches, and Archive all succeeded --
+artifact fully built, tested, audited clean, and fingerprinted in Jenkins.
+Publish failed at credential resolution before any Nexus network call was
+attempted. Confirms the artifact exists in Jenkins but never reached Nexus.
+post.changed correctly fired on the green->red transition.

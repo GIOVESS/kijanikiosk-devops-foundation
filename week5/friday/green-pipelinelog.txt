@@ -1,0 +1,42 @@
+Started by user Giovanni Bwayo
+Checking out Revision 66e01cd29492a330bdac1615b06ba8bac33bdd7a (refs/remotes/origin/feature/week5-friday-production-pipeline)
+Commit message: "ci: add Lint stage (eslint), post.changed condition"
+
+[Pipeline] stage
+[Pipeline] { (Lint)
++ npm ci
+added 337 packages, and audited 338 packages in 8s
++ node_modules/.bin/eslint index.js index.test.js
+(no output = clean)
+
+[Pipeline] stage
+[Pipeline] { (Build)
++ npm run build
+Build output: 2 files in dist/
+
+[Pipeline] stage
+[Pipeline] { (Verify)
+[Pipeline] parallel
++ npm test -- --ci --reporters=default --reporters=jest-junit
++ npm audit --audit-level=high --json
+PASS ./index.test.js
+Tests: 5 passed, 5 total
+AUDIT_EXIT=0
+
+[Pipeline] stage
+[Pipeline] { (Archive)
+Archiving artifacts
+Recording fingerprints
+
+[Pipeline] stage
+[Pipeline] { (Publish)
++ npm version 0.1.0-66e01cd --no-git-tag-version --allow-same-version
++ npm publish --registry http://nexus:8081/repository/npm-kijanikiosk/
+npm notice Tarball Contents: dist/index.js, dist/package.json, index.js, package.json (4 files, 750B)
+Published kk-payments-stub version 0.1.0-66e01cd to Nexus
+
+Finished: SUCCESS
+
+Note: post.changed did not fire — previous build was also SUCCESS, no status
+transition occurred. This is correct behavior, not a bug; changed only fires
+on red->green or green->red transitions.

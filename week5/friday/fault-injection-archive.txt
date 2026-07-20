@@ -1,0 +1,46 @@
+Commit: 2162664e7ee02af6f4f6b3bf19390e308aad26eb
+Fault: changed Archive stage's artifact pattern from "${BUILD_DIR}/**"
+       to "nonexistent-dir/**"
+
+[Pipeline] stage
+[Pipeline] { (Lint)
++ node_modules/.bin/eslint index.js index.test.js
+(clean)
+
+[Pipeline] stage
+[Pipeline] { (Build)
++ npm run build
+Build output: 2 files in dist/
+
+[Pipeline] stage
+[Pipeline] { (Verify)
+[Pipeline] parallel
+PASS ./index.test.js
+Tests: 5 passed, 5 total
+AUDIT_EXIT=0
+
+[Pipeline] stage
+[Pipeline] { (Archive)
+archiveArtifacts
+'nonexistent-dir/**' doesn't match anything, but '**' does. Perhaps that's
+what you mean?
+ERROR: No artifacts found that match the file pattern "nonexistent-dir/**".
+Configuration error?
+
+[Pipeline] stage
+[Pipeline] { (Publish)
+Stage "Publish" skipped due to earlier failure(s)
+
+[Pipeline] cleanWs
+[WS-CLEANUP] done
+
+Build status changed to FAILURE - kk-payments-ci #41
+Pipeline FAILED at build 41
+Finished: FAILURE
+
+Observed: this is the only fault where every prior stage (Lint, Build, both
+Verify branches) completed successfully -- Archive itself is the first
+failure point, contrasted with the Lint/Build faults where failure cascades
+from the very start. Jenkins even suggests the likely intended pattern in its
+own error message. Publish correctly skips since it depends on Archive's
+artifact existing. post.changed correctly fired on the green->red transition.
