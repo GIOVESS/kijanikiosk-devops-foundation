@@ -2,9 +2,13 @@ pipeline {
     agent any
 
     environment {
-        APP_NAME = 'kk-payments-stub'
-        BUILD_DIR = 'dist'
-        SERVICE_DIR = 'services/kk-payments-stub'
+        APP_NAME     = 'kk-payments-stub'
+        BUILD_DIR    = 'dist'
+        SERVICE_DIR  = 'services/kk-payments-stub'
+        NEXUS_URL    = 'http://nexus:8081/repository/npm-kijanikiosk/'
+        PKG_VERSION  = sh(script: "node -p \"require('./${SERVICE_DIR}/package.json').version\"", returnStdout: true).trim()
+        GIT_SHORT    = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+        ARTIFACT_VERSION = "${PKG_VERSION}-${GIT_SHORT}"
     }
 
     options {
@@ -50,6 +54,46 @@ pipeline {
                     archiveArtifacts artifacts: "${BUILD_DIR}/**", fingerprint: true, onlyIfSuccessful: true
                 }
             }
+        }
+        stage('Publish') {
+            steps {
+                dir("${SERVICE_DIR}") {
+                    withCredentials([usernamePassword(
+                        credentialsId: 'nexus-credentials',
+                        usernameVariable: 'NEXUS_USER',
+                        passwordVariable: 'NEXUS_PASS'
+                    )]) {
+                        sh '''
+                            set -e
+                            trap "rm -f .npmrc" EXIT
+
+                            NEXUS_TOKEN=$(echo -n "${NEXUS_USER}:${NEXUS_PASS}" | base64)
+
+                            cat > .npmrc << NPMRC
+registry=${NEXUS_URL}
+//nexus:8081/repository/npm-kijanikiosk/:_auth=${NEXUS_TOKEN}
+//nexus:8081/repository/npm-kijanikiosk/:always-auth=true
+NPMRC
+
+                            npm version ${ARTIFACT_VERSION} --no-git-tag-version --allow-same-version
+                            npm publish --registry ${NEXUS_URL}
+                        '''
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Published ${APP_NAME} version ${ARTIFACT_VERSION} to Nexus"
+            echo "Artifact URL: ${NEXUS_URL}${APP_NAME}/-/${APP_NAME}-${ARTIFACT_VERSION}.tgz"
+        }
+        failure {
+            echo "Pipeline FAILED at build ${BUILD_NUMBER} - check logs at ${BUILD_URL}"
+        }
+        always {
+            cleanWs()
         }
     }
 }
