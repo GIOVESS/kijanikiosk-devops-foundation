@@ -1,67 +1,58 @@
-# Week 5 Friday Reflection — Capstone
+# Week 5 Friday — Reflection
 
-## What "production-grade" actually meant, in practice
+## Q1: Where two requirements were in tension
 
-Going into today, the brief's five requirements (Docker agent, parallel
-Verify, correct post conditions, credential management, fault-injected
-reliability) looked like five separate boxes to check. In practice, four of
-them were already done by Wednesday and Thursday — today was almost entirely
-about the fifth (Lint stage + full 5-row fault table) and about proving the
-other four still held together as a single system rather than four
-independent pieces. That distinction matters: a pipeline that passes five
-requirements individually is not the same as a pipeline that's been run
-end-to-end, faulted five separate ways, and confirmed to recover correctly
-every time. The individual pieces were solid all week; today was about
-verifying the composition.
+Thursday's implementation of the Principle 4 improvement (archiving the
+`npm audit` output for diagnostic visibility) directly conflicted with
+Requirement 2's demand for a clean, correctly-versioned artifact: archiving
+`audit-report.json` caused it to be included inside the *published npm
+package itself*, alongside the Jenkinsfile and test files that had been
+leaking in unnoticed since Monday. The tension was between "give developers
+full diagnostic visibility into every run" and "ship only what belongs in
+the artifact" — and improving one directly broke the other, silently, until
+a file literally named "audit" made the leak visible in the Publish stage's
+tarball-contents log. I prioritized fixing the artifact cleanliness
+immediately (via `.npmignore`) over keeping the audit report inside the
+package, because Requirement 2's artifact-correctness guarantee is the more
+fundamental promise this pipeline makes — diagnostic files belong in
+Jenkins' own archived artifacts, not inside what gets published to
+production consumers of the package.
 
-## The one real surprise: faults move when the pipeline changes shape
+## Q2: Same sentence, two audiences
 
-Adding the Lint stage today silently relocated where the "Build fault"
-(a lockfile-mismatched dependency) actually surfaces — it now fails inside
-Lint, because `npm ci` moved there, not because anything about the
-dependency-resolution failure mode itself changed. This wasn't caught by
-reading the Jenkinsfile; it was only caught by re-running the exact same
-fault and watching it land somewhere different than expected. This is
-probably the single best argument for why fault injection has to be redone
-after any structural pipeline change, not just trusted from a prior week's
-run — the *category* of failure (dependency resolution) is stable, but the
-*stage* that owns it moved, and only a live rerun exposes that.
+**Board version:** "Once a version is stored under that label, it can never
+be quietly replaced by something else with the same name."
 
-## What changed between Thursday and Friday's pipeline that wasn't planned
+**Technical version (Jenkinsfile comment / conversation with Osei):** "The
+`npm-kijanikiosk` Nexus repository currently has `writePolicy: ALLOW` for
+this week's lab setup; in production this would be `writePolicy` set to
+disable redeploy, so a second `npm publish` attempt against an existing
+`<semver>-<git-sha>` version is rejected by Nexus with a `403`, rather than
+silently overwriting the existing blob."
 
-Two things emerged from actually implementing today's requirements rather
-than just describing them:
+**Same in both:** the underlying guarantee — a published version, once it
+exists, cannot be silently replaced. **Different:** the technical version
+names the actual mechanism (`writePolicy`, `ALLOW` vs. disabled redeploy,
+the specific HTTP rejection), while the board version states only the
+outcome and its consequence, with zero implementation detail. The board
+doesn't need to know *how* immutability is enforced, only that it is.
 
-1. Archiving the `npm audit` JSON output (closing Thursday's Principle 4 gap)
-   initially leaked that file — and, it turned out, `Jenkinsfile` and the
-   test files too, unnoticed since Monday — into the published npm package
-   itself. A `.npmignore` fixed it, but the bug existed for four days before
-   a file literally named "audit" made it visible. Nothing in the fault
-   injection table this week would have caught this on its own, because
-   every fault this week tests whether a stage *fails correctly* — none of
-   them test whether a *successful* stage produced clean output. That's a
-   real gap in this week's testing philosophy worth carrying forward: green
-   builds need their own scrutiny, not just red ones.
+## Q3: What breaks first at 4 → 40 developers
 
-2. `post.changed` never fired once until today, despite being in the
-   Jenkinsfile since Wednesday, simply because the pipeline had been green
-   on every single run until the first Lint fault. A condition that's never
-   observed firing is functionally unverified, regardless of how correct it
-   looks in the source. Fault injection this week ended up doubling as the
-   only real test of `post.changed` — ten transitions observed across five
-   faults and their reverts, every one correct.
-
-## What the capstone actually proves, versus what it can't
-
-The pipeline is provably reliable at the boundary it operates within: it
-builds, lints, tests, audits, packages, versions, and publishes correctly,
-and it fails safely and visibly at every one of those steps when something
-is wrong. What it cannot prove — and what no CI pipeline can prove on its
-own — is that the code is *correct* beyond what's been written a test for,
-or that a dependency is safe beyond what's already been publicly disclosed.
-Both Thursday's reflection and today's `.npmignore` incident point at the
-same underlying truth: a pipeline that's fully green is a pipeline that's
-passed every check someone thought to write, which is a meaningfully weaker
-claim than "the software is correct." The board doc says this directly, in
-its own "what this does not do" section, because Nia's presentation should
-not overstate what five days of CI work actually guarantees.
+`disableConcurrentBuilds()` in the `options` block. Osei flagged this
+directly on Wednesday: this setting doesn't queue simultaneous builds, it
+*cancels* the second one outright. At four developers, two people pushing
+within the same build window is rare enough to be a non-issue. At forty,
+with commits landing constantly across many feature branches, builds would
+start getting silently dropped multiple times a day — a developer would
+push, see no corresponding build ever run, and have no idea their change was
+never verified at all. This needs to change to a real queuing strategy
+(Jenkins' default build queue behavior, or an explicit
+`throttleJobProperty` if concurrent builds sharing the same Docker agent
+network become a resource problem) so that every push is eventually built,
+in order, rather than some pushes being silently skipped. The underlying
+cause is that `disableConcurrentBuilds()` was a reasonable simplification
+for a four-person team's collision rate, not a setting anyone chose because
+it was correct at scale — it was correct for the team size that existed
+when it was written, which is exactly the kind of assumption that breaks
+first as a team grows.
