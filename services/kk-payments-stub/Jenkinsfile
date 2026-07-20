@@ -95,7 +95,7 @@ pipeline {
             steps {
                 dir("${SERVICE_DIR}") {
                     withCredentials([usernamePassword(
-                        credentialsId: 'wrong-credential-id',
+                        credentialsId: 'nexus-credentials',
                         usernameVariable: 'NEXUS_USER',
                         passwordVariable: 'NEXUS_PASS'
                     )]) {
