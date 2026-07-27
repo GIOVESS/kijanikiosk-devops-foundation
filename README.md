@@ -19,6 +19,7 @@ This repo covers the full KijaniKiosk DevOps Foundation course, week by week. Th
 ---
 
 ## Repository Structure
+```
 kijanikiosk-devops-foundation/
 ├── Vagrantfile # Ubuntu 22.04 VM definition (VirtualBox)
 ├── kijanikiosk-provision.sh # 8-phase idempotent provisioning script
@@ -32,6 +33,7 @@ kijanikiosk-devops-foundation/
 ├── hardening-decisions.md # Security decisions in plain language (for Nia)
 ├── integration-notes.md # Four integration conflict resolutions
 └── reflection.md # Engineering retrospective
+```
 ---
 
 ## The 8 Phases
@@ -95,6 +97,8 @@ See `integration-notes.md` for full decision rationale on:
 ---
 
 ## Branch Strategy
+```
 main
 └── develop
-└── feature/week3-production-foundation ← this PR
+└── feature/week3-production-foundation
+```
