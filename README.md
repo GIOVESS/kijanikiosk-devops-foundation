@@ -4,28 +4,37 @@ Production server provisioning foundation for the KijaniKiosk payments platform.
 
 ---
 
-## Repository Structure
+## This Repository Spans Multiple Weeks
 
-```
-kijanikiosk-devops-foundation/
-├── Vagrantfile                          # Ubuntu 22.04 VM definition (VirtualBox)
-├── kijanikiosk-provision.sh            # 8-phase idempotent provisioning script
-├── pre-provisioning-audit.txt          # Dirty state captured before first run
-├── provision-run-dirty.log             # First run output (dirty VM)
-├── provision-run-clean.log             # Second run output (idempotency proof)
-├── post-remediation-verification.txt   # logrotate access model test results
-├── post-remediation-verification-commands.sh
-├── access-model-final.md               # Full ACL and ownership model
-├── kk-payments-hardening.md            # Hardening score progression log
-├── hardening-decisions.md              # Security decisions in plain language (for Nia)
-├── integration-notes.md                # Four integration conflict resolutions
-└── reflection.md                       # Engineering retrospective
-```
+This repo covers the full KijaniKiosk DevOps Foundation course, week by week. The sections below (Repository Structure, Phases, Services, etc.) describe **Week 3** specifically (server provisioning and hardening). Later weeks build on top of it:
+
+| Week | Focus | Where to look |
+|---|---|---|
+| Week 3 | Server provisioning, hardening, ACL access model | Repo root (this README) |
+| Week 4 | Infrastructure as Code — Terraform + Ansible | `week4/` |
+| Week 5 | CI/CD Pipeline — Jenkins, Docker agents, Nexus registry | **`Jenkinsfile`** (repo root) + `week5/` |
+
+**Looking for the CI/CD pipeline?** The Jenkinsfile is at the repo root. It builds, lints, tests, security-audits, archives, and publishes `services/kk-payments-stub` — a Node.js service — to a local Nexus registry via a pinned Docker agent. Full evidence (build logs, fault injection, credential audit, board documentation) is in `week5/friday/` — start with `week5/friday/README.md`.
 
 ---
 
-## The 8 Phases
+## Repository Structure
+kijanikiosk-devops-foundation/
+├── Vagrantfile # Ubuntu 22.04 VM definition (VirtualBox)
+├── kijanikiosk-provision.sh # 8-phase idempotent provisioning script
+├── pre-provisioning-audit.txt # Dirty state captured before first run
+├── provision-run-dirty.log # First run output (dirty VM)
+├── provision-run-clean.log # Second run output (idempotency proof)
+├── post-remediation-verification.txt # logrotate access model test results
+├── post-remediation-verification-commands.sh
+├── access-model-final.md # Full ACL and ownership model
+├── kk-payments-hardening.md # Hardening score progression log
+├── hardening-decisions.md # Security decisions in plain language (for Nia)
+├── integration-notes.md # Four integration conflict resolutions
+└── reflection.md # Engineering retrospective
+---
 
+## The 8 Phases
 | Phase | Name | Key Actions |
 |---|---|---|
 | 1 | Pre-flight | Detect dirty state, log each condition found |
@@ -40,7 +49,6 @@ kijanikiosk-devops-foundation/
 ---
 
 ## Services
-
 | Service | Port | Hardening Score | Target |
 |---|---|---|---|
 | `kk-api` | 3000 | 1.8 | < 3.5 |
@@ -50,7 +58,6 @@ kijanikiosk-devops-foundation/
 ---
 
 ## Running the Script
-
 ```bash
 # Start the VM
 vagrant up
@@ -62,15 +69,12 @@ sudo bash /vagrant/kijanikiosk-provision.sh 2>&1 | tee /vagrant/provision-run-di
 # Second run (idempotency proof — must also exit 0)
 sudo bash /vagrant/kijanikiosk-provision.sh 2>&1 | tee /vagrant/provision-run-clean.log
 ```
-
 Expected: all Phase 9 checks pass, `exit 0` on both runs.
 
 ---
 
 ## Dirty State Handled
-
 The script explicitly detects and converges each of the following conditions found on the pre-provisioned VM:
-
 - `kk-api` absent due to UID 998 conflict — created without forced UID
 - `kk-payments` and `kk-logs` existing but not in `kijanikiosk` group — memberships corrected
 - `/opt/kijanikiosk/config` permissions at 777 — corrected to 750
@@ -82,9 +86,7 @@ The script explicitly detects and converges each of the following conditions fou
 ---
 
 ## Integration Challenges Resolved
-
 See `integration-notes.md` for full decision rationale on:
-
 - **A** — `ProtectSystem=strict` vs `EnvironmentFile` path
 - **B** — Health directory ownership in the ACL model
 - **C** — logrotate `postrotate` signal under `PrivateTmp=yes`
@@ -93,9 +95,6 @@ See `integration-notes.md` for full decision rationale on:
 ---
 
 ## Branch Strategy
-
-```
 main
 └── develop
-    └── feature/week3-production-foundation  ← this PR
-```
+└── feature/week3-production-foundation ← this PR

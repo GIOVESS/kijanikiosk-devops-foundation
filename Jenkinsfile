@@ -1,0 +1,144 @@
+// This is a copy of the production Jenkinsfile for repo-root visibility.
+// The authoritative, actively-used copy — configured as the Script Path in
+// the Jenkins job — lives at services/kk-payments-stub/Jenkinsfile, since
+// this repo hosts multiple weeks' work and kk-payments-stub is a service
+// subdirectory, not the repo's sole purpose. Both copies are kept identical.
+
+pipeline {
+    agent {
+        docker {
+            image 'node:18-alpine'
+            args '--network kk-ci-net'
+        }
+    }
+
+    environment {
+        APP_NAME     = 'kk-payments-stub'
+        BUILD_DIR    = 'dist'
+        SERVICE_DIR  = 'services/kk-payments-stub'
+        NEXUS_URL    = 'http://nexus:8081/repository/npm-kijanikiosk/'
+        PKG_VERSION  = sh(script: "node -p \"require('./${SERVICE_DIR}/package.json').version\"", returnStdout: true).trim()
+        GIT_SHORT    = "${env.GIT_COMMIT.take(7)}"
+        ARTIFACT_VERSION = "${PKG_VERSION}-${GIT_SHORT}"
+    }
+
+    options {
+        timeout(time: 15, unit: 'MINUTES')
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        disableConcurrentBuilds()
+    }
+
+    stages {
+        stage('Lint') {
+            steps {
+                dir("${SERVICE_DIR}") {
+                    sh 'npm ci'
+                    sh 'node_modules/.bin/eslint index.js index.test.js'
+                }
+            }
+        }
+        stage('Build') {
+            steps {
+                dir("${SERVICE_DIR}") {
+                    sh 'npm run build'
+                    sh '''
+                        set -e
+                        test -d "${BUILD_DIR}" || { echo "ERROR: build directory not found"; exit 1; }
+                        echo "Build output: $(ls ${BUILD_DIR} | wc -l) files in ${BUILD_DIR}/"
+                    '''
+                }
+            }
+        }
+        stage('Verify') {
+            parallel {
+                stage('Test') {
+                    steps {
+                        dir("${SERVICE_DIR}") {
+                            sh '''
+                                set -e
+                                npm test -- --ci --reporters=default --reporters=jest-junit
+                            '''
+                        }
+                    }
+                    post {
+                        always {
+                            dir("${SERVICE_DIR}") {
+                                junit allowEmptyResults: true, testResults: 'junit.xml'
+                            }
+                        }
+                    }
+                }
+                stage('Security Audit') {
+                    steps {
+                        dir("${SERVICE_DIR}") {
+                            sh '''
+                                set +e
+                                npm audit --audit-level=high --json > audit-report.json
+                                AUDIT_EXIT=$?
+                                set -e
+                                exit $AUDIT_EXIT
+                            '''
+                        }
+                    }
+                    post {
+                        always {
+                            dir("${SERVICE_DIR}") {
+                                archiveArtifacts artifacts: 'audit-report.json', allowEmptyArchive: true
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        stage('Archive') {
+            steps {
+                dir("${SERVICE_DIR}") {
+                    archiveArtifacts artifacts: "${BUILD_DIR}/**", fingerprint: true, onlyIfSuccessful: true
+                }
+            }
+        }
+        stage('Publish') {
+            steps {
+                dir("${SERVICE_DIR}") {
+                    withCredentials([usernamePassword(
+                        credentialsId: 'nexus-credentials',
+                        usernameVariable: 'NEXUS_USER',
+                        passwordVariable: 'NEXUS_PASS'
+                    )]) {
+                        sh '''
+                            set -e
+                            trap "rm -f .npmrc" EXIT
+
+                            NEXUS_TOKEN=$(echo -n "${NEXUS_USER}:${NEXUS_PASS}" | base64)
+
+                            cat > .npmrc << NPMRC
+registry=${NEXUS_URL}
+//nexus:8081/repository/npm-kijanikiosk/:_auth=${NEXUS_TOKEN}
+//nexus:8081/repository/npm-kijanikiosk/:always-auth=true
+NPMRC
+
+                            npm version ${ARTIFACT_VERSION} --no-git-tag-version --allow-same-version
+                            npm publish --registry ${NEXUS_URL}
+                        '''
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Published ${APP_NAME} version ${ARTIFACT_VERSION} to Nexus"
+            echo "Artifact URL: ${NEXUS_URL}${APP_NAME}/-/${APP_NAME}-${ARTIFACT_VERSION}.tgz"
+        }
+        failure {
+            echo "Pipeline FAILED at build ${BUILD_NUMBER} - check logs at ${BUILD_URL}"
+        }
+        changed {
+            echo "Build status changed to ${currentBuild.currentResult} - ${JOB_NAME} #${BUILD_NUMBER}"
+        }
+        always {
+            cleanWs()
+        }
+    }
+}
