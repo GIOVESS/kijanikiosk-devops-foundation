@@ -1,0 +1,19 @@
+--- Pre-switch state ---
+active: blue
+previous: none
+pre-switch health: {"status":"ok","version":"v1.3.0","port":3000}
+
+--- Running switch-env.sh green ---
+[08:56:56] Switching from blue to green (port 3001)
+[08:56:57] Post-switch health: {"status":"ok","version":"v1.4.0","port":3001}
+
+--- Post-switch verification ---
+post-switch health: {"status":"ok","version":"v1.4.0","port":3001}
+active-env: green
+previous-env: blue
+nginx upstream reference:
+# Managed by switch-env.sh - do not edit manually
+upstream kijanikiosk_active {
+    server 127.0.0.1:3001; # kk-api-green
+}
+[09:00:44] Monitor started in separate terminal

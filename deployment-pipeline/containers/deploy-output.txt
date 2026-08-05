@@ -1,0 +1,17 @@
+NAME                           READY   STATUS    RESTARTS   AGE   IP           NODE       NOMINATED NODE   READINESS GATES
+kk-payments-6445f7d979-s2cvj   1/1     Running   0          54s   10.244.0.3   minikube   <none>           <none>
+kk-payments-6445f7d979-snvbm   1/1     Running   0          54s   10.244.0.4   minikube   <none>           <none>
+NAME          READY   UP-TO-DATE   AVAILABLE   AGE
+kk-payments   2/2     2            2           54s
+
+--- describe for resource requests/limits confirmation ---
+    Limits:
+      cpu:     200m
+      memory:  128Mi
+    Requests:
+      cpu:      50m
+      memory:   64Mi
+    Liveness:   http-get http://:3000/health delay=10s timeout=1s period=10s #success=1 #failure=3
+    Readiness:  http-get http://:3000/health delay=5s timeout=1s period=5s #success=1 #failure=3
+    Environment:
+      PORT:        3000

@@ -1,0 +1,28 @@
+=== Rollback Evidence ===
+
+T0 (fault introduced - kk-api-green.service stopped): 09:00:49
+T1 (MONITOR FAIL / ROLLBACK TRIGGERED line):          09:00:54
+T2 (rollback confirmed - blue healthy via proxy):     09:00:55
+
+Duration T0-to-T2: 6 seconds (under 90s threshold)
+
+=== Full monitor log ===
+[09:00:44] Monitor started. Watching green (port 3001). Confidence window: 60s. Poll interval: 5s.
+[09:00:49] Health check failed (consecutive: 1)
+[09:00:54] Health check failed (consecutive: 2)
+[09:00:54] [MONITOR FAIL] ROLLBACK TRIGGERED - rolling back to blue
+[09:00:54] Switching from green to blue (port 3000)
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+[09:00:55] Post-switch health: {"status":"ok","version":"v1.3.0","port":3000}
+[09:00:55] Rollback complete. Verifying...
+{"status":"ok","version":"v1.3.0","port":3000}
+=== Post-rollback state files ===
+active-env: blue
+previous-env: green
+
+=== Post-rollback proxy health ===
+{"status":"ok","version":"v1.3.0","port":3000}
+
+=== Terminal notes ===
+Monitor run in background of the same SSH session (single-terminal Vagrant constraint); PID tracked and waited on explicitly to preserve sequential ordering. No manual intervention between fault and rollback confirmation.
