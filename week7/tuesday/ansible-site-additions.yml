@@ -1,0 +1,35 @@
+    # Deploy script — version-controlled, reviewed via PR like any pipeline change
+    - name: Install deployment script
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../scripts/deploy-app.sh"
+        dest: /opt/kijanikiosk/scripts/deploy-app.sh
+        owner: root
+        group: kijanikiosk
+        mode: "0750"
+      tags: [deployment]
+
+    # Ensure per-environment config dir exists (deploy-app.sh writes env files here)
+    - name: Ensure kijanikiosk config directory exists
+      ansible.builtin.file:
+        path: /opt/kijanikiosk/config
+        state: directory
+        owner: root
+        group: kijanikiosk
+        mode: "0750"
+      tags: [deployment]
+
+    # Unit files reference their own env file, not a shared kk-api.env —
+    # PORT differs between blue and green, so a shared file can't work.
+    - name: Deploy kk-api-blue systemd unit
+      ansible.builtin.template:
+        src: templates/kk-api-blue.service.j2
+        dest: /etc/systemd/system/kk-api-blue.service
+      notify: reload systemd
+      tags: [deployment]
+
+    - name: Deploy kk-api-green systemd unit
+      ansible.builtin.template:
+        src: templates/kk-api-green.service.j2
+        dest: /etc/systemd/system/kk-api-green.service
+      notify: reload systemd
+      tags: [deployment]
