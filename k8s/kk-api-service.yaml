@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: kk-api
+  namespace: kijani-project
+spec:
+  type: ClusterIP
+  selector:
+    app: kk-api
+  ports:
+    - port: 8080
+      targetPort: 80
