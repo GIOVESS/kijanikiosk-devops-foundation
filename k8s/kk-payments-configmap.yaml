@@ -1,0 +1,12 @@
+apiVersion: v1
+data:
+  APP_PORT: "3001"
+  DB_HOST: kk-payments-db
+  DB_PORT: "5432"
+  LOG_LEVEL: info
+  MAX_CONNECTIONS: "20"
+  NODE_ENV: production
+kind: ConfigMap
+metadata:
+  name: kk-payments-config
+  namespace: kijani-project
