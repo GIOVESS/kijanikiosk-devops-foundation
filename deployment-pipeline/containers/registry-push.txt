@@ -1,0 +1,36 @@
+=== Version string computation (scripted, not hardcoded) ===
+VERSION=$(node -p "require(\"./package.json\").version")
+GITSHA=$(git rev-parse --short=7 HEAD)
+TAG="${VERSION}-${GITSHA}"
+
+Computed values:
+VERSION=0.1.0
+GITSHA=aa9305b
+TAG=0.1.0-aa9305b
+
+=== Push output ===
+The push refers to repository [localhost:5000/docker-kijanikiosk/kk-payments]
+8 layers pushed successfully
+0.1.0-aa9305b: digest: sha256:1cd81b868fb9ec8f0249ba869dd52b8b2d155dc3e382243d6e1e12713394d316 size: 856
+
+=== Delete-then-pull verification ===
+Local images (kk-payments:test and the registry-tagged copy) deleted.
+Confirmed absent locally before pull.
+Pulled fresh: localhost:5000/docker-kijanikiosk/kk-payments:0.1.0-aa9305b
+Digest after pull: sha256:1cd81b868fb9ec8f0249ba869dd52b8b2d155dc3e382243d6e1e12713394d316
+Digest matches push digest exactly — registry confirmed as source of truth, not local cache.
+Post-pull whoami check: kijani (PASS)
+
+=== Credential audit ===
+grep for the Nexus admin password across all .md, .txt, Dockerfile*, .yaml, .yml files in the repo: no matches.
+No tokens or passwords committed in any tracked file.
+
+=== Infrastructure note (deviation, documented) ===
+Registry is Nexus (Docker-hosted repository 'docker-kijanikiosk', port 5000),
+the same Nexus instance used for npm publishing in Week 5, not a dedicated
+cloud registry. Reachable via localhost:5000, which falls under Docker's
+default insecure-registries allowance for 127.0.0.0/8 — no daemon.json change
+was required. Nexus was found stopped (exited 137, no restart policy) at the
+start of this work; it was recreated with --restart unless-stopped and the
+5000/tcp port added, using the existing nexus-data volume so no prior state
+(including the Week 5 npm-kijanikiosk repo) was lost.

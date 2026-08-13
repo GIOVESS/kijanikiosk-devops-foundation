@@ -2,15 +2,18 @@
   "name": "kk-payments-stub",
   "version": "0.1.0",
   "description": "KijaniKiosk payments service - CI pipeline build/test target",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "build": "mkdir -p dist && cp index.js dist/index.js && cp package.json dist/package.json",
+    "build": "mkdir -p dist && cp index.js server.js package.json dist/",
     "test": "jest",
-    "start": "node index.js"
+    "start": "node server.js"
   },
   "devDependencies": {
     "jest": "^29.7.0",
     "jest-junit": "^17.0.0",
     "eslint": "^8.57.1"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }

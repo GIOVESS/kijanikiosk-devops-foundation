@@ -1,0 +1,10 @@
+node_modules
+.git
+*.test.js
+jest.config.js
+.eslintrc.json
+junit.xml
+audit-report.json
+Jenkinsfile
+.npmignore
+dist

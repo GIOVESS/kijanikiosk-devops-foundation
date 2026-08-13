@@ -1,0 +1,25 @@
+=== Self-Healing Evidence ===
+
+T0 (pod deletion, kk-payments-6445f7d979-s2cvj): 10:43:12
+T1 (replacement pod Ready, kk-payments-6445f7d979-r6mbg): 10:43:43
+Recovery time: 31 seconds
+
+=== kubectl get pods watch output (before/after) ===
+Before deletion:
+kk-payments-6445f7d979-s2cvj   1/1   Running   0   54s
+kk-payments-6445f7d979-snvbm   1/1   Running   0   54s
+
+Deletion command: kubectl delete pod kk-payments-6445f7d979-s2cvj
+Output: pod "kk-payments-6445f7d979-s2cvj" deleted from default namespace
+
+kubectl wait --for=condition=Ready pod -l app=kk-payments --timeout=60s
+pod/kk-payments-6445f7d979-r6mbg condition met
+pod/kk-payments-6445f7d979-snvbm condition met
+
+After replacement:
+NAME                           READY   STATUS    RESTARTS   AGE     IP           NODE       NOMINATED NODE   READINESS GATES
+kk-payments-6445f7d979-r6mbg   1/1     Running   0          87s     10.244.0.5   minikube   <none>           <none>
+kk-payments-6445f7d979-snvbm   1/1     Running   0          2m22s   10.244.0.4   minikube   <none>           <none>
+
+Note: new pod name (r6mbg) differs from deleted pod name (s2cvj) — this is
+fresh evidence from today's deployment, not reused from an earlier run.

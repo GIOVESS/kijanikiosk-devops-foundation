@@ -1,0 +1,15 @@
+=== Endpoints ===
+NAME                  ENDPOINTS                         AGE
+kk-payments-service   10.244.0.4:3000,10.244.0.5:3000   64s
+
+=== Service details ===
+NAME                  TYPE       CLUSTER-IP   EXTERNAL-IP   PORT(S)          AGE   SELECTOR
+kk-payments-service   NodePort   10.97.64.2   <none>        3001:30001/TCP   64s   app=kk-payments
+
+=== External access via NodePort ===
+curl http://$(minikube ip):30001/health
+{"status":"ok","version":"0.1.0","port":3000}
+
+=== In-cluster DNS resolution ===
+kubectl exec into pod, wget http://kk-payments-service.default.svc.cluster.local:3001/health
+{"status":"ok","version":"0.1.0","port":3000}
